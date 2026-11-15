@@ -34,9 +34,15 @@ var grid: BattleGrid
 var soldiers: Array[SimSoldier] = []
 ## Everything that has happened so far, oldest first.
 var events: Array[SimEvent] = []
+## Where the enemy goes when it gives up its position. See has_fallback_cell().
+var fallback_cell: Vector2i = Vector2i.ZERO
+## What the enemy decided and why, one line per decision, for reading afterwards.
+var ai_log: Array[String] = []
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _pending_orders: Array[Order] = []
+var _has_fallback_cell: bool = false
+var _picket_ai: PicketAi = PicketAi.new()
 
 
 func _init(
@@ -45,6 +51,8 @@ func _init(
 	rules = p_rules
 	grid = BattleGrid.new(scenario.width, scenario.height, scenario.blocked, scenario.cover)
 	_rng.seed = seed_value
+	fallback_cell = scenario.enemy_fallback
+	_has_fallback_cell = scenario.has_enemy_fallback
 	for spec: Scenario.SoldierSpec in scenario.soldiers:
 		var soldier: SimSoldier = SimSoldier.new()
 		soldier.id = soldiers.size()
@@ -93,17 +101,21 @@ func step() -> void:
 	tick += 1
 	_apply_pending_orders()
 	_fade_suppression()
+	_update_broken()
+	if rules.ai_think_ticks > 0 and tick % rules.ai_think_ticks == 0:
+		_picket_ai.think(self)
 	for soldier: SimSoldier in soldiers:
-		if soldier.is_moving() and not is_pinned(soldier):
+		# A pinned man will not walk forward, but a man going back still goes.
+		if soldier.is_moving() and (soldier.falling_back or not is_pinned(soldier)):
 			_advance_movement(soldier)
 	_resolve_fire()
 
 
-## Living soldiers of one team, in id order.
+## Soldiers of one team who are still in the fight, in id order.
 func living(side: SimSoldier.BattleSide, team_id: int) -> Array[SimSoldier]:
 	var found: Array[SimSoldier] = []
 	for soldier: SimSoldier in soldiers:
-		if soldier.alive and soldier.side == side and soldier.team_id == team_id:
+		if soldier.in_fight() and soldier.side == side and soldier.team_id == team_id:
 			found.append(soldier)
 	return found
 
@@ -118,6 +130,60 @@ func team_ids(side: SimSoldier.BattleSide) -> Array[int]:
 	return ids
 
 
+## How many men one side still has in the fight, across all its teams.
+func in_fight_count(side: SimSoldier.BattleSide) -> int:
+	var count: int = 0
+	for soldier: SimSoldier in soldiers:
+		if soldier.side == side and soldier.in_fight():
+			count += 1
+	return count
+
+
+## How many men of one side have left the fight unhurt.
+func withdrawn_count(side: SimSoldier.BattleSide) -> int:
+	var count: int = 0
+	for soldier: SimSoldier in soldiers:
+		if soldier.side == side and soldier.withdrawn:
+			count += 1
+	return count
+
+
+## How many men of one side have become casualties.
+func casualty_count(side: SimSoldier.BattleSide) -> int:
+	var count: int = 0
+	for soldier: SimSoldier in soldiers:
+		if soldier.side == side and not soldier.alive:
+			count += 1
+	return count
+
+
+func has_fallback_cell() -> bool:
+	return _has_fallback_cell
+
+
+## True when an enemy team has been told to give up its position.
+func picket_is_falling_back(team_id: int) -> bool:
+	return _picket_ai.is_falling_back(team_id)
+
+
+## Take a man out of the fight unhurt.
+func withdraw(soldier: SimSoldier) -> void:
+	soldier.withdrawn = true
+	soldier.path.clear()
+	soldier.suppression = 0
+	log_event(SimEvent.Kind.WITHDREW, soldier.id, -1, soldier.cell)
+
+
+## Record an enemy decision with its reason. Read ai_log to see why the enemy
+## did what it did.
+func note_ai(text: String) -> void:
+	ai_log.append("tick %d: %s" % [tick, text])
+
+
+func log_event(kind: SimEvent.Kind, actor_id: int, target_id: int, cell: Vector2i) -> void:
+	events.append(SimEvent.new(tick, kind, actor_id, target_id, cell))
+
+
 ## How many soldiers a team started with.
 func strength(side: SimSoldier.BattleSide, team_id: int) -> int:
 	var count: int = 0
@@ -130,7 +196,7 @@ func strength(side: SimSoldier.BattleSide, team_id: int) -> int:
 ## True when incoming fire has pinned a man: he will not walk, and he fires
 ## slower and less accurately until the pressure fades.
 func is_pinned(soldier: SimSoldier) -> bool:
-	return soldier.alive and soldier.suppression >= rules.pinned_threshold
+	return soldier.in_fight() and soldier.suppression >= rules.pinned_threshold
 
 
 ## How many living members of a team are pinned.
@@ -161,7 +227,7 @@ func team_may_fire(side: SimSoldier.BattleSide, team_id: int) -> bool:
 ## The living soldier standing on a cell, or null.
 func soldier_at(cell: Vector2i) -> SimSoldier:
 	for soldier: SimSoldier in soldiers:
-		if soldier.alive and soldier.cell == cell:
+		if soldier.in_fight() and soldier.cell == cell:
 			return soldier
 	return null
 
@@ -191,6 +257,8 @@ func snapshot() -> String:
 			soldier.path.size(),
 			soldier.rounds,
 			soldier.suppression,
+			1 if soldier.broken else 0,
+			1 if soldier.withdrawn else 0,
 		]
 		parts.append("%d:%s" % [soldier.id, ",".join(fields.map(str))])
 	return " ".join(parts)
@@ -212,7 +280,7 @@ func _start_move(team: Array[SimSoldier], order: Order) -> void:
 	# Cells other soldiers stand on, or are walking to, are not available.
 	var taken: Dictionary[Vector2i, bool] = {}
 	for other: SimSoldier in soldiers:
-		if other.alive and not team.has(other):
+		if other.in_fight() and not team.has(other):
 			taken[other.destination()] = true
 	var places: Array[Vector2i] = grid.free_cells_near(order.target, team.size(), taken)
 	for index: int in team.size():
@@ -252,7 +320,10 @@ func _advance_movement(soldier: SimSoldier) -> void:
 	soldier.path.remove_at(0)
 	soldier.step_ticks_total = 0
 	if soldier.path.is_empty():
-		_log(SimEvent.Kind.ARRIVED, soldier.id, -1, soldier.cell)
+		if soldier.falling_back:
+			withdraw(soldier)
+		else:
+			_log(SimEvent.Kind.ARRIVED, soldier.id, -1, soldier.cell)
 
 
 ## Every man who is not walking, is allowed to fire, has rounds left and can
@@ -265,14 +336,14 @@ func _advance_movement(soldier: SimSoldier) -> void:
 func _resolve_fire() -> void:
 	var shots: Array[Shot] = []
 	for shooter: SimSoldier in soldiers:
-		if not shooter.alive or shooter.weapon == null:
+		if not shooter.in_fight() or shooter.weapon == null or shooter.broken:
 			continue
 		if shooter.fire_cooldown_ticks > 0:
 			shooter.fire_cooldown_ticks -= 1
 			if shooter.fire_cooldown_ticks > 0:
 				continue
 		var pinned: bool = is_pinned(shooter)
-		var walking: bool = shooter.is_moving() and not pinned
+		var walking: bool = shooter.is_moving() and (shooter.falling_back or not pinned)
 		if walking or not shooter.fire_allowed or shooter.rounds <= 0:
 			continue
 		var target: SimSoldier = _choose_target(shooter)
@@ -303,6 +374,7 @@ func _make_casualty(soldier: SimSoldier) -> void:
 	soldier.step_ticks_left = 0
 	soldier.step_ticks_total = 0
 	soldier.suppression = 0
+	soldier.broken = false
 
 
 ## A shot, hit or miss, puts pressure on the man shot at and a little on each
@@ -311,7 +383,7 @@ func _suppress_around(shot: Shot) -> void:
 	if rules.suppression_per_shot <= 0:
 		return
 	for soldier: SimSoldier in soldiers:
-		if not soldier.alive or soldier.side != shot.target.side:
+		if not soldier.in_fight() or soldier.side != shot.target.side:
 			continue
 		var amount: int = 0
 		if soldier == shot.target:
@@ -338,6 +410,18 @@ func _fade_suppression() -> void:
 			soldier.suppression -= 1
 
 
+## A man breaks at the broken level and stays broken until the pressure has
+## fallen below the pinned level, so he does not flicker in and out.
+func _update_broken() -> void:
+	for soldier: SimSoldier in soldiers:
+		if not soldier.in_fight():
+			continue
+		if soldier.suppression >= rules.broken_threshold:
+			soldier.broken = true
+		elif soldier.suppression < rules.pinned_threshold:
+			soldier.broken = false
+
+
 ## Whom a man shoots at: of the opponents he can see within range, the one
 ## under the least suppression, then the nearest, then the lowest id. Aiming
 ## at whoever still has his head up spreads a team's fire across the enemy.
@@ -346,7 +430,7 @@ func _choose_target(shooter: SimSoldier) -> SimSoldier:
 	var best: SimSoldier = null
 	var best_distance: int = 0
 	for candidate: SimSoldier in soldiers:
-		if not candidate.alive or candidate.side == shooter.side:
+		if not candidate.in_fight() or candidate.side == shooter.side:
 			continue
 		var distance: int = shooter.cell.distance_squared_to(candidate.cell)
 		if distance > range_squared:

@@ -28,10 +28,21 @@ var fire_allowed: bool = true
 var fire_cooldown_ticks: int = 0
 ## Pressure from incoming fire, 0 to 100. Fades when the firing stops.
 var suppression: int = 0
+## True from the moment he breaks until the pressure has faded. He does not fire.
+var broken: bool = false
+## True while he is leaving his position for the rear.
+var falling_back: bool = false
+## True once he has left the fight unhurt. He takes no further part.
+var withdrawn: bool = false
+
+
+## Still taking part: neither a casualty nor withdrawn.
+func in_fight() -> bool:
+	return alive and not withdrawn
 
 
 func is_moving() -> bool:
-	return alive and not path.is_empty()
+	return in_fight() and not path.is_empty()
 
 
 ## Where he will end up once his current path is walked.

@@ -6,17 +6,19 @@ const TEST_RANGE: String = "res://data/scenarios/test_range.json"
 const RULES: String = "res://data/rules/prototype_rules.tres"
 
 ## State of the shipped test range after the scripted battle below, seed 1944.
-## Each soldier reads id:x,y,alive,cells-left-to-walk,rounds-left,suppression.
+## Each soldier reads
+## id:x,y,alive,cells-left-to-walk,rounds-left,suppression,broken,withdrawn.
 ## Recorded on macOS (Apple silicon). CI repeats it on Linux: if this test
 ## fails only there, the simulation is not portable and that must be fixed
 ## before anything else. If you change rules or the test range on purpose,
 ## run the tests, copy the new value from the failure message, and say why
 ## in the commit.
 const GOLDEN_SNAPSHOT: String = (
-	"tick=461 0:22,9,0,0,15,0 1:22,10,1,0,4,0 2:21,9,1,0,9,0 3:22,8,1,0,3,0 "
-	+ "4:21,10,1,0,5,0 5:34,4,1,0,15,0 6:35,4,1,0,15,0 7:34,5,1,0,15,0 "
-	+ "8:23,3,0,0,20,0 9:34,3,1,0,15,0 10:34,8,0,0,25,0 11:34,9,0,0,25,0 "
-	+ "12:34,10,0,0,25,0 13:34,11,0,0,24,0"
+	"tick=461 0:22,9,0,0,15,0,0,0 1:22,10,1,0,8,0,0,0 2:21,9,1,0,11,0,0,0 "
+	+ "3:22,8,1,0,8,0,0,0 4:21,10,1,0,9,0,0,0 5:34,4,1,0,18,0,0,0 "
+	+ "6:35,4,1,0,18,0,0,0 7:34,5,1,0,19,0,0,0 8:23,3,0,0,20,0,0,0 "
+	+ "9:34,3,1,0,18,0,0,0 10:38,9,1,0,27,0,0,1 11:39,9,1,0,27,0,0,1 "
+	+ "12:38,10,1,0,27,0,0,1 13:37,9,1,0,27,0,0,1"
 )
 
 

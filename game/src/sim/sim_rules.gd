@@ -35,3 +35,11 @@ extends Resource
 @export var pinned_fire_interval_percent: int = 200
 ## A pinned man's hit chance, as a percentage of normal.
 @export var pinned_hit_percent: int = 50
+
+@export_group("Breaking and enemy behaviour")
+## At this much suppression a man breaks: he stops firing, and an enemy
+## soldier leaves his position. He recovers once his suppression has fallen
+## back below the pinned level.
+@export var broken_threshold: int = 85
+## The enemy picket reconsiders what to do every this many ticks.
+@export var ai_think_ticks: int = 10

@@ -106,7 +106,7 @@ func test_a_pinned_man_stops_walking_and_goes_on_when_the_pressure_fades() -> vo
 
 func test_a_pinned_man_fires_half_as_often() -> void:
 	var sim: Simulation = _duel(99, 0)
-	sim.soldiers[0].suppression = 100
+	sim.soldiers[0].suppression = 40
 	SimFixture.run(sim, 40)
 	assert_eq(SimFixture.shots_by(sim, PLAYER), 2, "ticks 1 and 21; unpinned it would be four")
 
@@ -123,7 +123,7 @@ func test_a_man_pinned_on_the_move_can_still_fire() -> void:
 	sim.order_move(1, Vector2i(1, 8))
 	sim.step()
 	assert_eq(SimFixture.shots_by(sim, PLAYER), 0, "walking: no shot")
-	sim.soldiers[0].suppression = 100
+	sim.soldiers[0].suppression = 40
 	SimFixture.run(sim, 3)
 	assert_eq(SimFixture.shots_by(sim, PLAYER), 1, "pinned and stopped: he shoots back")
 

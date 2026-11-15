@@ -52,6 +52,7 @@ const COLOUR_SHOT_HIT: Color = Color("ff3b30")
 const COLOUR_METER_BACK: Color = Color(0.0, 0.0, 0.0, 0.6)
 const COLOUR_METER_RISING: Color = Color("e8d44d")
 const COLOUR_METER_PINNED: Color = Color("ff7a1a")
+const COLOUR_METER_BROKEN: Color = Color("ff2d2d")
 
 var sim: Simulation
 var paused: bool = true
@@ -96,7 +97,7 @@ func _draw() -> void:
 		if not soldier.alive:
 			_draw_casualty(soldier)
 	for soldier: SimSoldier in sim.soldiers:
-		if soldier.alive:
+		if soldier.in_fight():
 			_draw_soldier(soldier)
 	_draw_tracers()
 	_draw_rain()
@@ -219,8 +220,13 @@ func paused_banner_is_showing() -> bool:
 	return _paused_banner.visible
 
 
+## What the banner across the top says, or "" when it is hidden.
+func banner_text() -> String:
+	return _paused_banner.text if _paused_banner.visible else ""
+
+
 func _refresh_hud() -> void:
-	_paused_banner.visible = paused
+	_refresh_banner()
 	var state: String = tr("HUD_PAUSED") if paused else tr("HUD_RUNNING")
 	var status: String = tr("HUD_STATUS").format(
 		{"state": state, "time": _clock_text(), "team": selected_team}
@@ -253,8 +259,16 @@ func _refresh_hud() -> void:
 		enemy_fit += sim.living(SimSoldier.BattleSide.ENEMY, team_id).size()
 		enemy_total += sim.strength(SimSoldier.BattleSide.ENEMY, team_id)
 		enemy_pinned += sim.pinned_count(SimSoldier.BattleSide.ENEMY, team_id)
-	var enemy: String = tr("HUD_ENEMY").format(
-		{"fit": enemy_fit, "total": enemy_total, "pinned": enemy_pinned}
+	var enemy: String = (
+		tr("HUD_ENEMY")
+		. format(
+			{
+				"fit": enemy_fit,
+				"total": enemy_total,
+				"pinned": enemy_pinned,
+				"withdrew": sim.withdrawn_count(SimSoldier.BattleSide.ENEMY),
+			}
+		)
 	)
 	var title: String = "%s: %s" % [tr("GAME_TITLE"), tr(_scenario.name_key)]
 	var lines: PackedStringArray = PackedStringArray()
@@ -262,6 +276,39 @@ func _refresh_hud() -> void:
 	lines.append("      ".join(strengths))
 	lines.append(tr("HUD_CONTROLS"))
 	_hud_text.text = "\n".join(lines)
+
+
+## The banner shows how the fight ended, or that the game is paused.
+func _refresh_banner() -> void:
+	var player: SimSoldier.BattleSide = SimSoldier.BattleSide.PLAYER
+	var enemy: SimSoldier.BattleSide = SimSoldier.BattleSide.ENEMY
+	if sim.in_fight_count(enemy) == 0:
+		_paused_banner.text = (
+			tr("HUD_OUTCOME_CLEARED")
+			. format(
+				{
+					"fell": sim.casualty_count(enemy),
+					"withdrew": sim.withdrawn_count(enemy),
+					"fit": sim.in_fight_count(player),
+					"total": sim.soldiers.size() - _count_side(enemy),
+				}
+			)
+		)
+		_paused_banner.visible = true
+	elif sim.in_fight_count(player) == 0:
+		_paused_banner.text = tr("HUD_OUTCOME_LOST")
+		_paused_banner.visible = true
+	else:
+		_paused_banner.text = tr("HUD_PAUSED_BANNER")
+		_paused_banner.visible = paused
+
+
+func _count_side(side: SimSoldier.BattleSide) -> int:
+	var count: int = 0
+	for soldier: SimSoldier in sim.soldiers:
+		if soldier.side == side:
+			count += 1
+	return count
 
 
 func _clock_text() -> String:
@@ -424,13 +471,17 @@ func _draw_soldier(soldier: SimSoldier) -> void:
 
 
 ## A bar over a man's head showing how much fire he is under. It fills from
-## the left, and turns from yellow to orange once he is pinned.
+## the left: yellow while it rises, orange once he is pinned, red once he breaks.
 func _draw_suppression_meter(soldier: SimSoldier, centre: Vector2) -> void:
 	if soldier.suppression <= 0:
 		return
 	var corner: Vector2 = centre + Vector2(-12.0, -22.0)
 	draw_rect(Rect2(corner - Vector2(1, 1), Vector2(26.0, 6.0)), COLOUR_METER_BACK)
-	var colour: Color = COLOUR_METER_PINNED if sim.is_pinned(soldier) else COLOUR_METER_RISING
+	var colour: Color = COLOUR_METER_RISING
+	if soldier.broken:
+		colour = COLOUR_METER_BROKEN
+	elif sim.is_pinned(soldier):
+		colour = COLOUR_METER_PINNED
 	draw_rect(Rect2(corner, Vector2(24.0 * soldier.suppression / 100.0, 4.0)), colour)
 	# A tick marks the level at which a man becomes pinned.
 	var mark_x: float = corner.x + 24.0 * sim.rules.pinned_threshold / 100.0

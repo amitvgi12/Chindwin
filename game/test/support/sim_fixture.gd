@@ -23,7 +23,8 @@ static func rules() -> SimRules:
 
 
 ## The same rules with suppression on, in round numbers: 10 per shot, 4 to a
-## neighbour, halved by cover, one point lost every 5 ticks, pinned at 30.
+## neighbour, halved by cover, one point lost every 5 ticks, pinned at 30,
+## broken at 60. The enemy reconsiders every tick.
 static func rules_with_suppression() -> SimRules:
 	var result: SimRules = rules()
 	result.suppression_per_shot = 10
@@ -33,6 +34,8 @@ static func rules_with_suppression() -> SimRules:
 	result.pinned_threshold = 30
 	result.pinned_fire_interval_percent = 200
 	result.pinned_hit_percent = 50
+	result.broken_threshold = 60
+	result.ai_think_ticks = 1
 	return result
 
 
@@ -65,11 +68,19 @@ static func soldier(side: String, team: int, x: int, y: int, rounds: int = 99) -
 ## A scenario from soldiers and optional obstacle rectangles written as JSON,
 ## for example blocked = "[3, 0, 1, 9]".
 static func scenario(
-	width: int, height: int, soldiers: Array[String], blocked: String = "", cover: String = ""
+	width: int,
+	height: int,
+	soldiers: Array[String],
+	blocked: String = "",
+	cover: String = "",
+	enemy_fallback: String = ""
 ) -> Scenario:
+	var fallback: String = ""
+	if not enemy_fallback.is_empty():
+		fallback = '"enemy_fallback": %s, ' % enemy_fallback
 	var text: String = (
-		'{"width": %d, "height": %d, "blocked_rects": [%s], "cover_rects": [%s], "soldiers": [%s]}'
-		% [width, height, blocked, cover, ", ".join(soldiers)]
+		'{"width": %d, "height": %d, %s"blocked_rects": [%s], "cover_rects": [%s], "soldiers": [%s]}'
+		% [width, height, fallback, blocked, cover, ", ".join(soldiers)]
 	)
 	return Scenario.from_json_text(text)
 

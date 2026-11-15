@@ -3,11 +3,20 @@ extends RefCounted
 ## Something that happened in the simulation, kept in a log.
 ## Tests read the log to check rules. The view reads it to draw shots.
 
-enum Kind { ORDER_MOVE, ORDER_HOLD_FIRE, ORDER_FIRE_AT_WILL, ARRIVED, SHOT_MISSED, SHOT_HIT }
+enum Kind {
+	ORDER_MOVE,
+	ORDER_HOLD_FIRE,
+	ORDER_FIRE_AT_WILL,
+	ARRIVED,
+	SHOT_MISSED,
+	SHOT_HIT,
+	PICKET_FALLS_BACK,
+	WITHDREW,
+}
 
 var tick: int
 var kind: Kind
-## Soldier who acted, or the team id for the three ORDER kinds.
+## Soldier who acted, or the team id for the ORDER kinds and PICKET_FALLS_BACK.
 var actor_id: int
 ## Soldier acted upon, or -1 when there is none.
 var target_id: int

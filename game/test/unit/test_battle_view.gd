@@ -134,7 +134,7 @@ func test_the_corner_panel_reports_state_and_strengths() -> void:
 	assert_string_contains(text, "PAUSED")
 	assert_string_contains(text, "Team 1: 5 of 5 fit, 0 pinned, 100 rounds, firing")
 	assert_string_contains(text, "Team 2: 5 of 5 fit, 0 pinned, 100 rounds, firing")
-	assert_string_contains(text, "Enemy picket: 4 of 4, 0 pinned")
+	assert_string_contains(text, "Enemy picket: 4 of 4, 0 pinned, 0 withdrew")
 
 
 func test_no_text_key_is_shown_raw_in_the_corner_panel() -> void:
@@ -201,3 +201,25 @@ func test_the_status_strip_counts_pinned_men() -> void:
 	_first_of_team(1).suppression = 100
 	view._process(0.0)
 	assert_string_contains(view.hud_text(), "Team 1: 5 of 5 fit, 1 pinned")
+
+
+func test_the_banner_reports_a_cleared_picket_with_the_cost() -> void:
+	var enemies: Array[SimSoldier] = view.sim.living(SimSoldier.BattleSide.ENEMY, 1)
+	enemies[0].alive = false
+	for index: int in range(1, enemies.size()):
+		view.sim.withdraw(enemies[index])
+	_first_of_team(1).alive = false
+	view.toggle_pause()
+	view._process(0.0)
+	assert_string_contains(view.banner_text(), "1 fell, 3 withdrew")
+	assert_string_contains(view.banner_text(), "9 of 10 men fit")
+	assert_string_contains(view.hud_text(), "3 withdrew")
+
+
+func test_the_banner_reports_a_lost_section() -> void:
+	for soldier: SimSoldier in view.sim.soldiers:
+		if soldier.side == SimSoldier.BattleSide.PLAYER:
+			soldier.alive = false
+	view.toggle_pause()
+	view._process(0.0)
+	assert_string_contains(view.banner_text(), "Your section is finished")

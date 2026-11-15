@@ -25,6 +25,10 @@ var cover: Array[Vector2i] = []
 ## Tracks, each a list of cells. Drawn on the map only; no rule uses them yet.
 var tracks: Array[PackedVector2Array] = []
 var soldiers: Array[SoldierSpec] = []
+## Where the enemy goes when it gives up its position. Only used when
+## has_enemy_fallback is true.
+var enemy_fallback: Vector2i = Vector2i.ZERO
+var has_enemy_fallback: bool = false
 ## Problems found while loading, in plain words. Empty means the scenario is usable.
 var errors: Array[String] = []
 
@@ -56,6 +60,8 @@ static func from_json_text(text: String) -> Scenario:
 			scenario.cover.append(cell)
 	scenario._read_tracks(data.get("tracks", []))
 	scenario._read_soldiers(data.get("soldiers", []))
+	if data.has("enemy_fallback"):
+		scenario._read_enemy_fallback(data.get("enemy_fallback"))
 	return scenario
 
 
@@ -108,6 +114,19 @@ func _read_tracks(value: Variant) -> void:
 				points.append(Vector2(numbers[0], numbers[1]))
 		if points.size() >= 2:
 			tracks.append(points)
+
+
+func _read_enemy_fallback(value: Variant) -> void:
+	var numbers: Array[int] = _as_int_list(value, 2, "enemy_fallback", errors)
+	if numbers.is_empty():
+		return
+	var cell: Vector2i = Vector2i(numbers[0], numbers[1])
+	var off_map: bool = cell.x < 0 or cell.y < 0 or cell.x >= width or cell.y >= height
+	if off_map or blocked.has(cell) or cover.has(cell):
+		errors.append("enemy_fallback %s must be an open cell on the map" % cell)
+		return
+	enemy_fallback = cell
+	has_enemy_fallback = true
 
 
 func _read_soldiers(value: Variant) -> void:
