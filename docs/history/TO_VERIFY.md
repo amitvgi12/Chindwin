@@ -1,6 +1,6 @@
 # TO_VERIFY: historical claims awaiting confirmation
 
-Last updated: 2026-11-15 (Phase 0, before the interview).
+Last updated: 2026-11-15 (Phase 0).
 
 Nothing in this file may appear in game text. A claim leaves this file only when it
 moves into a mission file in `docs/history/` with a source that Amit has checked.
@@ -122,7 +122,27 @@ Mitlong Khunou from mid-May to late June 1944 (S1 pp. 48-49).
 S1 documents the pattern, not any single raid, so a mission there would be tagged
 COMPOSITE. This rests on one source and needs corroboration before it is adopted.
 
-## 7. Books needed for page-level citations
+## 7. Claims in the earlier vertical-slice notes (pasted 15 November 2026)
+
+The notes describe an assault on Moirang on 14 April 1944. None of this may be used
+as written. See `docs/DEVLOG.md` for why the notes were not adopted.
+
+| Claim in the notes | What was found | Status |
+|---|---|---|
+| "Colonel Shaukat Hayat Malik and the Bahadur Group capturing Moirang" | See section 1, rows 1 and 2. Unit and rank are in conflict, and no source found describes an assault. | CONFLICT / OPEN |
+| Moirang was "the first town on Indian soil liberated by the INA" | "First" is contested (section 1, row 1). S1 does not mention Moirang. | CONFLICT |
+| A captain commands the squad of seven | Captains led companies (S1 p. 44). | Contradicted by S1 |
+| "Mairembam Koireng", a Manipuri volunteer, serves as the squad's guide | Press accounts (S4) name M. Koireng Singh as a real Moirang leader who met the incoming force. A real person cannot be a squad member or be given invented actions. | Real person: not usable |
+| A listening post of "17th Indian Division" at Loktak Lake | Not checked. | OPEN |
+| Two sepoys surrender to a megaphone appeal and give up the garrison's positions | No such event found. S1 p. 43 says appeals were "largely unsuccessful". The megaphone is unsourced. | INVENTED |
+| Bunkers and Vickers machine guns guarding Moirang; room-to-room fighting for a headquarters compound | Nothing found. The brief itself records no evidence of a set-piece assault. | INVENTED |
+| Flag raised at 17:00 with the springing tiger tricolour | S4 gives "about 5 p.m." and disagrees on the flag's design. | SECOND-HAND / CONFLICT |
+| Counterattack by Daimler armoured cars and an M3 Stuart tank down the Imphal-Tiddim road | Stuarts were at Imphal with 7th Light Cavalry (S4). Nothing places armour at Moirang. | OPEN: no tank on screen |
+| A "pre-monsoon squall" on 14 April | Not checked. Monsoon onset is itself unsettled (section 1, row 8). | OPEN |
+| Squad weapons: Vickers-Berthier, Sten, Thompson, Arisaka Type 99, scoped Lee-Enfield, Type 99 magnetic mines, No. 77 smoke grenades | Nothing found on any of these in INA hands. S1 p. 43 gives Arakan raiding parties rifles, pistols and a few grenades. | OPEN |
+| "Scans of actual 1944 INA field diaries" and museum photographs | The project holds none, and has no rights to any. | Not available |
+
+## 8. Books needed for page-level citations
 
 S1's footnotes lean on these. Page citations cannot be written without them.
 
