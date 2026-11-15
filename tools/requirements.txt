@@ -1,0 +1,4 @@
+# Development-only Python tools, installed into .tools/venv by `make lint`.
+# gdtoolkit: GDScript linter (gdlint) and formatter (gdformat). MIT licence.
+# https://github.com/Scony/godot-gdscript-toolkit
+gdtoolkit==4.5.0

@@ -1,0 +1,57 @@
+name: CI
+
+# Every push: asset ledger, lint, compile check, unit tests.
+# Version tags (v*) and manual runs: also build the Windows export.
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Ledger, lint, compile check, tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Cache the Godot download
+        uses: actions/cache@v6
+        with:
+          path: .tools/cache
+          key: godot-editor-${{ runner.os }}-${{ hashFiles('tools/godot.lock') }}
+      - name: Install the pinned Godot editor
+        run: make setup
+      - name: Run all checks
+        run: make check
+
+  export-windows:
+    name: Windows export
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    needs: check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Cache the Godot and template downloads
+        uses: actions/cache@v6
+        with:
+          path: .tools/cache
+          key: godot-templates-${{ runner.os }}-${{ hashFiles('tools/godot.lock') }}
+      - name: Install the pinned Godot editor and Windows templates
+        run: make setup-templates
+      - name: Export
+        run: make export-windows
+      - uses: actions/upload-artifact@v7
+        with:
+          name: BeyondTheChindwin-windows-${{ github.ref_name }}
+          path: build/windows/
+          if-no-files-found: error

@@ -1,0 +1,12 @@
+# Pinned toolchain and download cache (see tools/get_godot.sh)
+.tools/
+
+# Build output
+build/
+
+# Godot: generated cache
+game/.godot/
+
+# OS and editor noise
+.DS_Store
+__pycache__/
