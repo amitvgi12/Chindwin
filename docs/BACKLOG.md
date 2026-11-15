@@ -9,27 +9,29 @@ L is a week or more of sessions.
 
 | # | Task | Size |
 |---|---|---|
-| 1 | Run `make run` and play the test range for five minutes. Report anything that looks or feels wrong. What to look for is in the latest devlog entry. | S |
-| 2 | Create a private GitHub repository, push, and tell Claude whether the first CI run is green. The repository still exists on one laptop only. | S |
-| 3 | Find a library or loan copy of Shah Nawaz Khan's memoir or Fay's *The Forgotten Army*. | M |
+| 1 | `git push`, then tell Claude whether CI is green. | S |
+| 2 | Play the test range again. Try a frontal attack, then pin with one team and send the other round the north in stages. Say whether the look is a direction you can accept. | S |
+| 3 | Read pp. 48-49 of the Sundaram article and tick the box in `docs/history/mission-01.md`. That unlocks the briefing screen. | S |
+| 4 | Find a library or loan copy of Shah Nawaz Khan's memoir or Fay's *The Forgotten Army*. | M |
 
 ## Phase 1: remaining
 
 | # | Task | Size |
 |---|---|---|
-| 1 | Cover: a terrain type that protects without blocking sight. | S |
-| 2 | Firing by the player's teams, hit resolution, ammunition count. Weapons as data. | M |
-| 3 | Suppression and will-to-fight states. Visible meter. | M |
-| 4 | Enemy picket behaviour that reacts to suppression, with logged decisions. Replaces the placeholder enemy fire. | L |
-| 5 | Debug overlay: sight lines, suppression values, AI state. | M |
-| 6 | Scenario runner for Gate 1 criterion 1: ten seeded runs, frontal against flank. | S |
+| 1 | Queued waypoints (Shift + right-click), so a team can be sent round a flank in one go. The shortest path often runs straight through the enemy's field of fire. | S |
+| 2 | Suppression and will-to-fight states. Visible meter. | M |
+| 3 | Enemy picket behaviour that reacts to suppression, with logged decisions. Replaces "shoot the nearest man". | L |
+| 4 | Debug overlay: sight lines, suppression values, AI state. | M |
+| 5 | Scenario runner for Gate 1 criterion 1: ten seeded runs, frontal against flank. | S |
+| 6 | Briefing screen from `docs/history/mission-01.md`, once Amit has checked it. | S |
 | 7 | Gate 1 playtest script and a one-screen controls card. | S |
 
-Known rough edges in the thin loop, to fix as the systems above arrive:
+Known rough edges, to fix as the systems above arrive:
 
 - Soldiers walk through each other on the way; they only end on separate cells.
-- A shot is drawn for a quarter of a second, which is easy to miss.
-- Nothing marks the game as paused except the word in the status strip.
+- A team with nobody left still reads "firing" in the status strip.
+- Rain is decoration. It affects nothing until Phase 2.
+- The track is decoration. Walking on it is no faster.
 
 ## Phase 1: done
 
@@ -38,7 +40,10 @@ Known rough edges in the thin loop, to fix as the systems above arrive:
 | Simulation skeleton: fixed tick, seeded random numbers, plain-data state, queued orders, recorded-battle test. | 15 Nov 2026 |
 | Grid map, movement and pathfinding. Scenario loaded from JSON. | 15 Nov 2026 |
 | Line of sight on the grid. | 15 Nov 2026 |
-| Thin playable loop: draw units, select a team, order a move, pause, an enemy that fires back. | 15 Nov 2026 |
+| Thin playable loop: draw units, select a team, order a move, pause. | 15 Nov 2026 |
+| Weapons as data, firing for both sides, counted ammunition, hold-fire order. | 15 Nov 2026 |
+| Cover that protects only against fire coming over it. | 15 Nov 2026 |
+| Trial "map in the rain" look, drawn in code. Paused banner. | 15 Nov 2026 |
 
 ## History: runs alongside, blocked on sources
 

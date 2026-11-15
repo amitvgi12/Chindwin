@@ -2,6 +2,10 @@ class_name BattleView
 extends Node2D
 ## Draws the simulation and turns mouse and keyboard input into orders.
 ## Holds no rules: everything shown here is read from Simulation.
+##
+## The look is a trial of one art direction, "a military map in the rain".
+## It is drawn entirely in code, uses no art files, and is a placeholder
+## until the art decision in Phase 3.
 
 
 ## A line drawn for a moment from a shooter to his target.
@@ -10,6 +14,7 @@ class Tracer:
 	var from: Vector2
 	var to: Vector2
 	var hit: bool
+	var by_player: bool
 	var seconds_left: float
 
 
@@ -21,31 +26,45 @@ const DEFAULT_SEED: int = 1944
 const CELL_PX: int = 32
 ## Most simulation ticks run in one drawn frame, so a slow frame cannot snowball.
 const MAX_STEPS_PER_FRAME: int = 5
-const TRACER_SECONDS: float = 0.25
+const TRACER_SECONDS: float = 0.35
+const RAIN_STREAKS: int = 170
 
-# Colours are from a palette chosen to stay distinct for colour-blind players.
-# Shape also differs: player soldiers are circles, enemy soldiers are diamonds.
-const COLOUR_GROUND: Color = Color("2f3b2f")
-const COLOUR_GRID_LINE: Color = Color(1.0, 1.0, 1.0, 0.05)
-const COLOUR_BLOCKED: Color = Color("6b6257")
+# Ground and terrain.
+const COLOUR_GROUND_LIGHT: Color = Color("5c5a40")
+const COLOUR_GROUND_DARK: Color = Color("4c4d36")
+const COLOUR_TRACK: Color = Color("7d6747")
+const COLOUR_JUNGLE: Array[Color] = [Color("1f3320"), Color("294228"), Color("17281a")]
+const COLOUR_BANK: Color = Color("8f7a52")
+const COLOUR_BANK_EDGE: Color = Color("3a3122")
+const COLOUR_RAIN: Color = Color(0.86, 0.9, 0.95, 0.2)
+const COLOUR_RAIN_HAZE: Color = Color(0.45, 0.55, 0.65, 0.1)
+
+# Soldiers. The palette stays distinct for colour-blind players, and shape
+# differs too: player soldiers are circles, enemy soldiers are diamonds.
 const COLOUR_TEAM_1: Color = Color("4477aa")
 const COLOUR_TEAM_2: Color = Color("66ccee")
 const COLOUR_ENEMY: Color = Color("ee6677")
-const COLOUR_CASUALTY: Color = Color("bbbbbb")
+const COLOUR_OUTLINE: Color = Color("141414")
+const COLOUR_CASUALTY: Color = Color("c9c9c9")
 const COLOUR_SELECTED: Color = Color("ffffff")
-const COLOUR_SHOT_MISSED: Color = Color("ccbb44")
-const COLOUR_SHOT_HIT: Color = Color("ee6677")
+const COLOUR_SHOT_MISSED: Color = Color("e8d44d")
+const COLOUR_SHOT_HIT: Color = Color("ff3b30")
 
 var sim: Simulation
 var paused: bool = true
 var selected_team: int = 1
 
-var _scenario_name_key: String = ""
+var _scenario: Scenario
+## What each player team was last told about firing. Kept here because an
+## order given while paused has not reached the simulation yet.
+var _team_fire: Dictionary[int, bool] = {}
 var _tick_accumulator: float = 0.0
+var _rain_clock: float = 0.0
 var _events_drawn: int = 0
 var _tracers: Array[Tracer] = []
 
-@onready var _hud_text: Label = $Hud/Panel/Text
+@onready var _hud_text: Label = $Hud/Panel/Margin/Text
+@onready var _paused_banner: Label = $Hud/Banner
 
 
 func _ready() -> void:
@@ -65,6 +84,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _draw() -> void:
 	_draw_ground()
+	_draw_tracks()
+	_draw_banks()
+	_draw_jungle()
 	_draw_destinations()
 	for soldier: SimSoldier in sim.soldiers:
 		if not soldier.alive:
@@ -73,19 +95,26 @@ func _draw() -> void:
 		if soldier.alive:
 			_draw_soldier(soldier)
 	_draw_tracers()
+	_draw_rain()
 
 
 ## Start the scenario again from the beginning, paused.
 func restart() -> void:
 	var rules: SimRules = load(RULES_PATH) as SimRules
-	var scenario: Scenario = Scenario.load_file(SCENARIO_PATH)
-	for problem: String in scenario.errors:
+	_scenario = Scenario.load_file(SCENARIO_PATH)
+	for problem: String in _scenario.errors:
 		push_error("%s: %s" % [SCENARIO_PATH, problem])
-	sim = Simulation.new(rules, scenario, DEFAULT_SEED)
-	_scenario_name_key = scenario.name_key
+	var weapons: Dictionary[String, WeaponDef] = WeaponLibrary.load_for(_scenario)
+	for weapon_id: String in _scenario.missing_weapons(weapons):
+		push_error("%s: no weapon file for '%s'" % [SCENARIO_PATH, weapon_id])
+	sim = Simulation.new(rules, _scenario, weapons, DEFAULT_SEED)
 	paused = true
 	selected_team = 1
+	_team_fire.clear()
+	for team_id: int in sim.team_ids(SimSoldier.BattleSide.PLAYER):
+		_team_fire[team_id] = true
 	_tick_accumulator = 0.0
+	_rain_clock = 0.0
 	_events_drawn = 0
 	_tracers.clear()
 	_refresh_hud()
@@ -96,6 +125,7 @@ func restart() -> void:
 func advance(delta: float) -> void:
 	if paused:
 		return
+	_rain_clock += delta
 	_age_tracers(delta)
 	var tick_seconds: float = 1.0 / sim.rules.ticks_per_second
 	_tick_accumulator += delta
@@ -117,6 +147,8 @@ func handle_input(event: InputEvent) -> void:
 		select_team(1)
 	elif event.is_action_pressed(InputActions.SELECT_TEAM_2):
 		select_team(2)
+	elif event.is_action_pressed(InputActions.TOGGLE_FIRE):
+		toggle_fire_for_selected_team()
 	elif event.is_action_pressed(InputActions.RESTART):
 		restart()
 	elif event is InputEventMouseButton:
@@ -151,6 +183,18 @@ func order_selected_team_to(cell: Vector2i) -> bool:
 	return sim.order_move(selected_team, cell)
 
 
+## Switch the selected team between holding fire and firing at will.
+func toggle_fire_for_selected_team() -> void:
+	var may_fire: bool = not team_is_firing(selected_team)
+	if sim.order_fire(selected_team, may_fire):
+		_team_fire[selected_team] = may_fire
+
+
+## What a player team was last told: true for fire at will, false for hold fire.
+func team_is_firing(team_id: int) -> bool:
+	return _team_fire.get(team_id, true)
+
+
 ## The grid cell under a point on screen.
 func cell_at(point: Vector2) -> Vector2i:
 	return Vector2i(floori(point.x / CELL_PX), floori(point.y / CELL_PX))
@@ -161,18 +205,24 @@ func cell_centre(cell: Vector2i) -> Vector2:
 	return Vector2((cell.x + 0.5) * CELL_PX, (cell.y + 0.5) * CELL_PX)
 
 
-## The text currently shown in the corner panel.
+## The text currently shown in the status strip.
 func hud_text() -> String:
 	return _hud_text.text
 
 
+func paused_banner_is_showing() -> bool:
+	return _paused_banner.visible
+
+
 func _refresh_hud() -> void:
+	_paused_banner.visible = paused
 	var state: String = tr("HUD_PAUSED") if paused else tr("HUD_RUNNING")
 	var status: String = tr("HUD_STATUS").format(
 		{"state": state, "time": _clock_text(), "team": selected_team}
 	)
 	var strengths: PackedStringArray = PackedStringArray()
 	for team_id: int in sim.team_ids(SimSoldier.BattleSide.PLAYER):
+		var fire_key: String = "HUD_FIRE_ON" if team_is_firing(team_id) else "HUD_FIRE_OFF"
 		(
 			strengths
 			. append(
@@ -183,6 +233,8 @@ func _refresh_hud() -> void:
 							"team": team_id,
 							"fit": sim.living(SimSoldier.BattleSide.PLAYER, team_id).size(),
 							"total": sim.strength(SimSoldier.BattleSide.PLAYER, team_id),
+							"rounds": sim.team_rounds(SimSoldier.BattleSide.PLAYER, team_id),
+							"fire": tr(fire_key),
 						}
 					)
 				)
@@ -195,7 +247,7 @@ func _refresh_hud() -> void:
 		enemy_total += sim.strength(SimSoldier.BattleSide.ENEMY, team_id)
 	strengths.append(tr("HUD_ENEMY").format({"fit": enemy_fit, "total": enemy_total}))
 	var lines: PackedStringArray = PackedStringArray()
-	lines.append("%s: %s      %s" % [tr("GAME_TITLE"), tr(_scenario_name_key), status])
+	lines.append("%s: %s      %s" % [tr("GAME_TITLE"), tr(_scenario.name_key), status])
 	lines.append("      ".join(strengths))
 	lines.append(tr("HUD_CONTROLS"))
 	_hud_text.text = "\n".join(lines)
@@ -213,10 +265,12 @@ func _collect_new_tracers() -> void:
 		var hit: bool = event.kind == SimEvent.Kind.SHOT_HIT
 		if not hit and event.kind != SimEvent.Kind.SHOT_MISSED:
 			continue
+		var shooter: SimSoldier = sim.soldiers[event.actor_id]
 		var tracer: Tracer = Tracer.new()
-		tracer.from = cell_centre(sim.soldiers[event.actor_id].cell)
+		tracer.from = cell_centre(shooter.cell)
 		tracer.to = cell_centre(event.cell)
 		tracer.hit = hit
+		tracer.by_player = shooter.side == SimSoldier.BattleSide.PLAYER
 		tracer.seconds_left = TRACER_SECONDS
 		_tracers.append(tracer)
 
@@ -249,16 +303,63 @@ func _team_colour(soldier: SimSoldier) -> Color:
 	return COLOUR_TEAM_1 if soldier.team_id == 1 else COLOUR_TEAM_2
 
 
+## A repeatable number from 0 to 1 for a cell or index, used only to make the
+## drawing look less regular. Never used by any rule.
+func _speckle(a: int, b: int) -> float:
+	return float(absi(hash(Vector2i(a, b))) % 1000) / 1000.0
+
+
+func _cell_rect(cell: Vector2i) -> Rect2:
+	return Rect2(Vector2(cell.x * CELL_PX, cell.y * CELL_PX), Vector2(CELL_PX, CELL_PX))
+
+
+## Wet ground, each cell a slightly different shade so it does not look flat.
 func _draw_ground() -> void:
-	var size: Vector2 = Vector2(sim.grid.width * CELL_PX, sim.grid.height * CELL_PX)
-	draw_rect(Rect2(Vector2.ZERO, size), COLOUR_GROUND)
-	for x: int in range(sim.grid.width + 1):
-		draw_line(Vector2(x * CELL_PX, 0), Vector2(x * CELL_PX, size.y), COLOUR_GRID_LINE)
-	for y: int in range(sim.grid.height + 1):
-		draw_line(Vector2(0, y * CELL_PX), Vector2(size.x, y * CELL_PX), COLOUR_GRID_LINE)
-	for cell: Vector2i in sim.grid.blocked_cells():
-		var corner: Vector2 = Vector2(cell.x * CELL_PX, cell.y * CELL_PX)
-		draw_rect(Rect2(corner, Vector2(CELL_PX, CELL_PX)), COLOUR_BLOCKED)
+	for y: int in sim.grid.height:
+		for x: int in sim.grid.width:
+			var shade: float = _speckle(x * 31 + 7, y * 17 + 3)
+			var colour: Color = COLOUR_GROUND_LIGHT.lerp(COLOUR_GROUND_DARK, shade * 0.3)
+			draw_rect(_cell_rect(Vector2i(x, y)), colour)
+
+
+## A muddy track. Drawn only: no rule uses tracks yet.
+func _draw_tracks() -> void:
+	for track: PackedVector2Array in _scenario.tracks:
+		var points: PackedVector2Array = PackedVector2Array()
+		for cell: Vector2 in track:
+			points.append(cell_centre(Vector2i(cell)))
+		draw_polyline(points, COLOUR_TRACK.darkened(0.25), 22.0, true)
+		draw_polyline(points, COLOUR_TRACK, 16.0, true)
+
+
+## Low cover: an earth bank a man can shoot over. Neighbouring bank cells are
+## joined so a row of them reads as one continuous bank.
+func _draw_banks() -> void:
+	var cells: Array[Vector2i] = sim.grid.low_cells()
+	for pass_index: int in 2:
+		var colour: Color = COLOUR_BANK_EDGE if pass_index == 0 else COLOUR_BANK
+		var width: float = 18.0 if pass_index == 0 else 12.0
+		for cell: Vector2i in cells:
+			var centre: Vector2 = cell_centre(cell)
+			draw_circle(centre, width * 0.5, colour)
+			for offset: Vector2i in [Vector2i(1, 0), Vector2i(0, 1)] as Array[Vector2i]:
+				if sim.grid.is_low_cover(cell + offset):
+					draw_line(centre, cell_centre(cell + offset), colour, width)
+
+
+## Thick jungle: a dark mass of tree crowns that nobody can see or walk through.
+func _draw_jungle() -> void:
+	var cells: Array[Vector2i] = sim.grid.tall_cells()
+	for cell: Vector2i in cells:
+		draw_rect(_cell_rect(cell), COLOUR_JUNGLE[2])
+	for cell: Vector2i in cells:
+		for crown: int in 3:
+			var offset: Vector2 = Vector2(
+				(_speckle(cell.x * 13 + crown, cell.y * 7) - 0.5) * CELL_PX * 0.8,
+				(_speckle(cell.x * 5, cell.y * 11 + crown) - 0.5) * CELL_PX * 0.8
+			)
+			var radius: float = 11.0 + _speckle(cell.x + crown * 3, cell.y + crown) * 8.0
+			draw_circle(cell_centre(cell) + offset, radius, COLOUR_JUNGLE[crown])
 
 
 ## A small hollow square where each walking player soldier is heading.
@@ -274,11 +375,13 @@ func _draw_destinations() -> void:
 func _draw_soldier(soldier: SimSoldier) -> void:
 	var centre: Vector2 = _soldier_position(soldier)
 	if soldier.side == SimSoldier.BattleSide.ENEMY:
-		draw_colored_polygon(_diamond(centre, 12.0), COLOUR_ENEMY)
+		draw_colored_polygon(_diamond(centre, 14.0), COLOUR_OUTLINE)
+		draw_colored_polygon(_diamond(centre, 11.5), COLOUR_ENEMY)
 		return
-	draw_circle(centre, 11.0, _team_colour(soldier))
+	draw_circle(centre, 12.5, COLOUR_OUTLINE)
+	draw_circle(centre, 10.5, _team_colour(soldier))
 	if soldier.team_id == selected_team:
-		draw_arc(centre, 13.0, 0.0, TAU, 32, COLOUR_SELECTED, 2.0)
+		draw_arc(centre, 14.5, 0.0, TAU, 32, COLOUR_SELECTED, 2.0)
 	draw_string(
 		ThemeDB.fallback_font,
 		centre + Vector2(-4, 5),
@@ -290,7 +393,7 @@ func _draw_soldier(soldier: SimSoldier) -> void:
 	)
 
 
-## A casualty is a grey cross inside the outline of what he was.
+## A casualty is a pale cross inside the outline of what he was.
 func _draw_casualty(soldier: SimSoldier) -> void:
 	var centre: Vector2 = cell_centre(soldier.cell)
 	if soldier.side == SimSoldier.BattleSide.ENEMY:
@@ -301,11 +404,31 @@ func _draw_casualty(soldier: SimSoldier) -> void:
 	draw_line(centre + Vector2(-6, 6), centre + Vector2(6, -6), COLOUR_CASUALTY, 2.0)
 
 
+## Shots: thin yellow for a miss, thick red for a hit. Your own side's shots
+## are drawn solid, the enemy's slightly fainter.
 func _draw_tracers() -> void:
 	for tracer: Tracer in _tracers:
 		var colour: Color = COLOUR_SHOT_HIT if tracer.hit else COLOUR_SHOT_MISSED
-		colour.a = clampf(tracer.seconds_left / TRACER_SECONDS, 0.0, 1.0)
-		draw_line(tracer.from, tracer.to, colour, 3.0 if tracer.hit else 1.5)
+		var strength: float = clampf(tracer.seconds_left / TRACER_SECONDS, 0.0, 1.0)
+		colour.a = strength if tracer.by_player else strength * 0.75
+		draw_line(tracer.from, tracer.to, colour, 3.5 if tracer.hit else 1.5)
+
+
+## Rain: a faint haze and slanting streaks. It stops moving while paused.
+## Decoration only until weather becomes a rule in Phase 2.
+func _draw_rain() -> void:
+	var size: Vector2 = Vector2(sim.grid.width * CELL_PX, sim.grid.height * CELL_PX)
+	draw_rect(Rect2(Vector2.ZERO, size), COLOUR_RAIN_HAZE)
+	var fall: Vector2 = Vector2(-7.0, 20.0)
+	for streak: int in RAIN_STREAKS:
+		var speed: float = 620.0 + _speckle(streak, 5) * 260.0
+		var travelled: float = _rain_clock * speed + _speckle(streak, 9) * (size.y + 40.0)
+		var start: Vector2 = Vector2(
+			_speckle(streak, 1) * (size.x + 120.0), fmod(travelled, size.y + 40.0) - 20.0
+		)
+		start.x -= (start.y / fall.y) * 7.0
+		if start.y + fall.y < size.y:
+			draw_line(start, start + fall, COLOUR_RAIN, 1.0)
 
 
 func _diamond(centre: Vector2, radius: float, closed: bool = false) -> PackedVector2Array:

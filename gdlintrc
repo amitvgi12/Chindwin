@@ -1,0 +1,5 @@
+# Settings for gdlint. Anything not listed here keeps the linter's default.
+#
+# A test file has one public function per test, so the default limit of 20
+# public methods per file is too low for this project.
+max-public-methods: 60

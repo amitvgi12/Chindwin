@@ -28,9 +28,7 @@ var _low: Dictionary[Vector2i, bool] = {}
 var _astar: AStarGrid2D = AStarGrid2D.new()
 
 
-func _init(
-	p_width: int, p_height: int, tall: Array[Vector2i], low: Array[Vector2i] = []
-) -> void:
+func _init(p_width: int, p_height: int, tall: Array[Vector2i], low: Array[Vector2i] = []) -> void:
 	width = p_width
 	height = p_height
 	_astar.region = Rect2i(0, 0, width, height)

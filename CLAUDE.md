@@ -10,9 +10,12 @@ what was decided since. Where they differ, this file wins.
 ## Current state
 
 - **Gate 0 passed on 15 November 2026. Phase 1 (grey-box combat) is under way.**
-- Built so far: the simulation core, a test-range map, and a thin playable loop in
-  which two teams can be selected and moved while an enemy picket fires at them.
-  The player's men cannot shoot yet.
+- Built so far: the simulation core; a test-range map; two teams that can be
+  selected, moved and told to hold fire; rifles with counted ammunition for both
+  sides; cover that protects only against fire coming over it; and a placeholder
+  "map in the rain" look drawn in code.
+- Not built yet: suppression, will to fight, enemy behaviour beyond "shoot the
+  nearest man", weather as a rule, any way to win or lose.
 - **Purpose: this build is a demo.** Amit may later take the game towards his earlier
   3D vision if the demo and investors support it. That is a decision for after the
   demo, made in writing. Until then every hard constraint below stands.
@@ -147,6 +150,10 @@ tools/           toolchain and check scripts
 
 ## Things that are easy to get wrong here
 
+- **Amit commits and pushes from his editor.** Never leave the working tree
+  half-finished between tool calls for long, and finish every step with `make check`
+  and a commit. CI went red once because an unformatted, untested working tree was
+  pushed mid-step.
 - **GUT exits 0 when a test file fails to compile.** Always run tests through
   `make test`, which catches that. Never call GUT's command line directly in CI.
 - **Run `make check` before committing.** It rebuilds Godot's cache first, so new
@@ -169,7 +176,7 @@ tools/           toolchain and check scripts
 |---|---|---|
 | Godot 4.7.2 | MIT | The engine. Pinned with SHA-512 checksums. |
 | GUT 9.7.1 | MIT | Unit tests. Vendored in `game/addons/gut/`. |
-| gdtoolkit 4.5.0 | MIT | Lint and format. Development only, in `.tools/venv`. |
+| gdtoolkit 4.5.0 | MIT | Lint and format. Development only, in `.tools/venv`. Project settings in `gdlintrc`. |
 
 ## How we work
 

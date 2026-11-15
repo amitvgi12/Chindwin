@@ -2,9 +2,13 @@ keys,en
 GAME_TITLE,Beyond the Chindwin
 GAME_SUBTITLE,The Forgotten Front
 SCENARIO_TEST_RANGE,Test range
+WEAPON_RIFLE,Rifle (placeholder)
 HUD_PAUSED,PAUSED
 HUD_RUNNING,RUNNING
 HUD_STATUS,"{state}   Time {time}   Selected: Team {team}"
-HUD_TEAM,"Team {team}: {fit} of {total} fit"
+HUD_TEAM,"Team {team}: {fit} of {total} fit, {rounds} rounds, {fire}"
+HUD_FIRE_ON,firing
+HUD_FIRE_OFF,holding fire
 HUD_ENEMY,"Enemy picket: {fit} of {total}"
-HUD_CONTROLS,"Space: pause or resume   1, 2: select team   Right-click: move   R: restart"
+HUD_CONTROLS,"Space: pause   1, 2: select team   Right-click: move   F: hold or resume fire   R: restart"
+HUD_PAUSED_BANNER,"PAUSED. Give orders, then press Space."

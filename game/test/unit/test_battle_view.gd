@@ -110,7 +110,7 @@ func test_right_click_orders_only_the_selected_team_and_works_while_paused() -> 
 
 
 func test_right_click_on_a_blocked_cell_orders_nobody() -> void:
-	view.handle_input(_click(MOUSE_BUTTON_RIGHT, view.sim.grid.blocked_cells()[0]))
+	view.handle_input(_click(MOUSE_BUTTON_RIGHT, view.sim.grid.tall_cells()[0]))
 	view.toggle_pause()
 	view.advance(0.1)
 	assert_false(_first_of_team(1).is_moving())
@@ -132,11 +132,51 @@ func test_the_corner_panel_reports_state_and_strengths() -> void:
 	var text: String = view.hud_text()
 	assert_string_contains(text, "Test range")
 	assert_string_contains(text, "PAUSED")
-	assert_string_contains(text, "Team 1: 5 of 5 fit")
-	assert_string_contains(text, "Team 2: 5 of 5 fit")
+	assert_string_contains(text, "Team 1: 5 of 5 fit, 100 rounds, firing")
+	assert_string_contains(text, "Team 2: 5 of 5 fit, 100 rounds, firing")
 	assert_string_contains(text, "Enemy picket: 4 of 4")
 
 
 func test_no_text_key_is_shown_raw_in_the_corner_panel() -> void:
 	assert_false(view.hud_text().contains("HUD_"), "every HUD_ key needs an English string")
 	assert_false(view.hud_text().contains("{"), "every placeholder was filled in")
+
+
+func test_the_paused_banner_shows_only_while_paused() -> void:
+	assert_true(view.paused_banner_is_showing())
+	view.toggle_pause()
+	view.advance(0.1)
+	view._process(0.0)
+	assert_false(view.paused_banner_is_showing())
+
+
+func test_f_tells_only_the_selected_team_to_hold_fire() -> void:
+	view.handle_input(_key(KEY_2))
+	view.handle_input(_key(KEY_F))
+	assert_false(view.team_is_firing(2))
+	assert_true(view.team_is_firing(1), "team 1 was not told anything")
+	view._process(0.0)
+	assert_string_contains(view.hud_text(), "Team 2: 5 of 5 fit, 100 rounds, holding fire")
+	view.toggle_pause()
+	view.advance(0.1)
+	assert_false(view.sim.team_may_fire(SimSoldier.BattleSide.PLAYER, 2), "order reached the sim")
+	assert_true(view.sim.team_may_fire(SimSoldier.BattleSide.PLAYER, 1))
+
+
+func test_pressing_f_twice_while_paused_ends_up_firing_again() -> void:
+	view.handle_input(_key(KEY_F))
+	view.handle_input(_key(KEY_F))
+	assert_true(view.team_is_firing(1))
+	view.toggle_pause()
+	view.advance(0.1)
+	assert_true(view.sim.team_may_fire(SimSoldier.BattleSide.PLAYER, 1))
+
+
+func test_restart_puts_both_teams_back_to_firing() -> void:
+	view.handle_input(_key(KEY_F))
+	view.handle_input(_key(KEY_R))
+	assert_true(view.team_is_firing(1))
+
+
+func test_a_rifle_carries_its_placeholder_label() -> void:
+	assert_eq(tr("WEAPON_RIFLE"), "Rifle (placeholder)")

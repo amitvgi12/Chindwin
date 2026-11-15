@@ -161,17 +161,20 @@ func hit_chance_percent(shooter: SimSoldier, target: SimSoldier) -> int:
 func snapshot() -> String:
 	var parts: PackedStringArray = PackedStringArray(["tick=%d" % tick])
 	for soldier: SimSoldier in soldiers:
-		parts.append(
-			(
-				"%d:%d,%d,%s,%d,%d"
-				% [
-					soldier.id,
-					soldier.cell.x,
-					soldier.cell.y,
-					"up" if soldier.alive else "down",
-					soldier.path.size(),
-					soldier.rounds,
-				]
+		(
+			parts
+			. append(
+				(
+					"%d:%d,%d,%s,%d,%d"
+					% [
+						soldier.id,
+						soldier.cell.x,
+						soldier.cell.y,
+						"up" if soldier.alive else "down",
+						soldier.path.size(),
+						soldier.rounds,
+					]
+				)
 			)
 		)
 	return " ".join(parts)

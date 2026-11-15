@@ -114,3 +114,51 @@ func test_free_cells_near_a_blocked_target_is_empty() -> void:
 	var grid: BattleGrid = _grid_with_wall()
 	var nobody: Dictionary[Vector2i, bool] = {}
 	assert_true(grid.free_cells_near(Vector2i(3, 1), 3, nobody).is_empty())
+
+
+func _grid_with_bank() -> BattleGrid:
+	# 7 wide, 5 high, with one low bank (cover) at (3, 2).
+	var nothing_tall: Array[Vector2i] = []
+	var bank: Array[Vector2i] = [Vector2i(3, 2)]
+	return BattleGrid.new(7, 5, nothing_tall, bank)
+
+
+func test_low_cover_stops_walking_but_not_sight() -> void:
+	var grid: BattleGrid = _grid_with_bank()
+	assert_true(grid.is_blocked(Vector2i(3, 2)), "nobody stands on the bank")
+	assert_false(grid.blocks_sight(Vector2i(3, 2)), "but you can see over it")
+	assert_true(grid.has_line_of_sight(Vector2i(1, 2), Vector2i(5, 2)))
+	assert_does_not_have(grid.find_path(Vector2i(1, 2), Vector2i(5, 2)), Vector2i(3, 2))
+
+
+func test_thick_jungle_stops_both_walking_and_sight() -> void:
+	var grid: BattleGrid = _grid_with_wall()
+	assert_true(grid.is_blocked(Vector2i(3, 2)))
+	assert_true(grid.blocks_sight(Vector2i(3, 2)))
+	assert_false(grid.is_low_cover(Vector2i(3, 2)))
+
+
+func test_a_man_right_behind_a_bank_is_covered_from_the_front() -> void:
+	var grid: BattleGrid = _grid_with_bank()
+	assert_true(grid.gives_cover(Vector2i(0, 2), Vector2i(4, 2)), "shot crosses the bank last")
+
+
+func test_a_man_behind_a_bank_is_not_covered_from_the_side_or_rear() -> void:
+	var grid: BattleGrid = _grid_with_bank()
+	assert_false(grid.gives_cover(Vector2i(4, 0), Vector2i(4, 2)), "from the side")
+	assert_false(grid.gives_cover(Vector2i(6, 2), Vector2i(4, 2)), "from behind")
+
+
+func test_a_bank_does_not_cover_a_man_standing_away_from_it() -> void:
+	var grid: BattleGrid = _grid_with_bank()
+	assert_false(grid.gives_cover(Vector2i(0, 2), Vector2i(6, 2)), "two cells back: no cover")
+
+
+func test_the_man_shooting_over_a_bank_gets_no_cover_from_it_at_long_range() -> void:
+	var grid: BattleGrid = _grid_with_bank()
+	assert_false(grid.gives_cover(Vector2i(4, 2), Vector2i(0, 2)))
+
+
+func test_adjacent_men_never_have_cover_between_them() -> void:
+	var grid: BattleGrid = _grid_with_bank()
+	assert_false(grid.gives_cover(Vector2i(4, 2), Vector2i(5, 2)))

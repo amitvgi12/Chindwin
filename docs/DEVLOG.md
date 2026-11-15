@@ -2,6 +2,90 @@
 
 What was done, what was decided, and why. Newest session first.
 
+## 2026-11-15, session 1 continued: firing, cover and a first look
+
+### What prompted it
+
+Amit played the thin loop and said: "this is just pixels, no feel of background
+settings, story". Two causes. His men could not shoot, so there was no game. And the
+grey box, which his own brief asked for, gave no sense of place.
+
+### Done
+
+- **Firing for both sides.** A man who is standing still, allowed to fire, has rounds
+  left and can see an opponent in range fires at the nearest. A man who is walking
+  does not fire. Shots in a tick are decided together, so two men can hit each other.
+- **Weapons as data** in `game/data/weapons/`. One placeholder rifle. Rounds are
+  counted per man and shown per team.
+- **Hold fire.** `F` switches the selected team between holding fire and firing.
+- **Cover.** A low bank stops movement, not sight. It protects a man only from a shot
+  whose last cell before him is the bank. Fire from the side or rear ignores it.
+- **A trial look**, drawn in code with no art files: wet ground, thick jungle, earth
+  banks, a muddy track, rain that stops while paused, and a paused banner.
+- **Draft briefing** in `docs/history/mission-01.md`, every sentence tied to a page of
+  the one source read so far. Not in the game until Amit checks it.
+- 94 tests pass. `make check` is clean.
+
+### How to see it
+
+Run `make run`.
+
+1. **Frontal attack.** Select each team and right-click just in front of the right-hand
+   bank. Press Space. Men walking in the open cannot fire and are shot down.
+2. **Pin and flank.** Press `R`. Send team 1 to stand just left of the middle bank.
+   Send team 2 north in stages: first above the top block of jungle, then to the
+   ground north of the red diamonds. From there their shots do not cross the bank.
+3. **Ammunition.** Watch the rounds fall. Press `F` to make a team hold fire.
+
+**What "right" looks like:** fire across a bank kills slowly; fire from the side kills
+quickly; walking men never fire; a team holding fire spends no rounds; the rain and
+the men stop when paused.
+
+### What the recorded battle shows
+
+With team 1 at the middle bank and team 2 sent to the north flank, the picket's four
+men all fall. Team 1 loses one man and spends about sixteen rounds each for no result.
+Team 2 loses one man and needs about five rounds each. That is pillar 1 appearing in
+the rules before suppression exists.
+
+### Found by looking
+
+- **The shortest path runs through the killing ground.** Told to go to the north flank
+  in one order, a team walked through the centre and lost four of five. Waypoints are
+  now the next backlog item.
+- The first ground pattern looked like a chessboard and the banks like minus signs.
+  Both fixed after the screenshot.
+
+### Verified
+
+- Rules by unit tests. The picture by screenshot.
+- **Real mouse and keyboard work.** Amit's screenshot shows both teams moved by hand.
+- **CI runs on Linux** as far as lint: checkout, the Godot download, the Python
+  environment and the linter all worked on the first push.
+
+### Not verified
+
+- CI beyond the lint step: the compile check and tests have not yet run on Linux.
+- How the look reads in motion, and whether Amit can accept it as a direction.
+- The Windows build.
+
+### The red CI run
+
+The first push included a commit of the working tree taken while this step was half
+done: unformatted and without its tests. The lint step failed on formatting, which is
+what it is for. The step is now complete and passes locally.
+
+### Decisions and why
+
+| Decision | Why |
+|---|---|
+| Showed a trial look now, though the brief keeps art for Phase 3 | A direction Amit cannot accept is cheaper to find now than after Gate 2. It is code only, costs no money, and changes no rule. Art direction is still decided in Phase 3. |
+| Cover is decided by the last cell a shot crosses | One rule gives directional cover with no facing or angles to store, and it is what makes going round the side worth it. |
+| Men fire on their own; the player controls only hold fire | The smallest thing that creates the choice between firing and moving, and between firing and saving rounds. A "fire at that target" order can come later if it is missed. |
+| Rain and the track are decoration for now | They show the setting. Weather becomes a rule in Phase 2. Both are listed as rough edges so nobody mistakes them for rules. |
+| The rifle is labelled "(placeholder)" and has invented numbers | No weapon is sourced yet. The label keeps that visible. |
+| Briefing text waits for Amit to read the two pages | The history rule: nothing unverified in game text. The check takes about ten minutes. |
+
 ## 2026-11-15, session 1 continued: Gate 0 and the first Phase 1 step
 
 ### Decided by Amit
