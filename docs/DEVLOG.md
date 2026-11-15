@@ -2,6 +2,76 @@
 
 What was done, what was decided, and why. Newest session first.
 
+## 2026-11-15, session 1 continued: waypoints and suppression
+
+### Reported by Amit
+
+- CI is green on the firing and cover commit. The Windows export job was skipped, as
+  designed: it runs only on version tags and manual runs.
+- The trial look is acceptable.
+
+### Done
+
+- **Waypoints.** Shift + right-click adds a leg after the team's current route. The
+  route still to be walked is drawn for the selected team.
+- **Suppression.** Every shot, hit or miss, adds pressure to the man shot at and a
+  little to each comrade next to him. Cover in front of a man reduces it. It fades
+  when the firing stops.
+- **Pinned.** At half the scale a man is pinned: he stops walking, keeps his order,
+  fires half as often and half as well, and carries on when the pressure fades.
+- **Fire spreads.** A man aims at the opponent under the least pressure, then the
+  nearest. A team's fire now covers the whole picket.
+- **Meter.** A bar over each man fills as pressure rises, with a tick at the pinned
+  level. It turns orange and the man is drawn smaller once he is pinned. The status
+  strip counts pinned men on both sides.
+- 112 tests pass. `make check` is clean.
+
+### How to see it
+
+Run `make run`.
+
+1. Select team 1 and right-click just left of the middle bank. Press Space and wait.
+2. Watch the bars over the red diamonds. When they turn orange the picket is pinned.
+3. Press Space to pause. Press `2`. Right-click above the top block of jungle, then
+   Shift + right-click on the open ground north of the diamonds. A thin line shows the
+   route. Press Space.
+4. For comparison press `R` and send team 2 on the same route straight away, before
+   team 1 has pinned anybody.
+
+**What "right" looks like:** a pinned man shrinks, stops walking and fires rarely; a
+team that moves while the picket is pinned loses far fewer men than one that moves
+first; the bars drain when nobody is shooting at a man.
+
+### What the numbers show
+
+Two runs of the same plan with the same seed. When team 2 set off at the same moment
+as team 1, four of its five men were shot crossing the north side. When it set off six
+seconds later, with team 1 already firing, it lost one. That gap is the game.
+
+### Verified
+
+- Rules by unit tests, each from the written description of the rule.
+- The picture by screenshot: meters, shrunken pinned men, route and status counts.
+- CI on Linux through to the tests, on the previous commit.
+
+### Not verified
+
+- How suppression reads in motion, and whether the timing feels right.
+- Balance. The numbers in `prototype_rules.tres` are first guesses. Nothing yet checks
+  Gate 1 criterion 1.
+- The Windows export job in CI, and the Windows build itself.
+
+### Decisions and why
+
+| Decision | Why |
+|---|---|
+| Suppression is one number per man, 0 to 100 | It is the short-term half of "will to fight" in the GDD. Condition (hunger, fatigue) joins it in Phase 2. |
+| Misses suppress as much as hits | Pressure comes from being shot at. This is what lets a team with poor odds of hitting still be useful. |
+| A pinned man keeps his order | The player should not have to re-issue orders after every burst. Being pinned costs time, not intent. |
+| Aim at the least-suppressed opponent | With "aim at the nearest", five rifles pinned one man and left three free to shoot. |
+| No "broken" state yet | Falling back and surrender need the enemy behaviour work, which is next. |
+| Tests switch suppression off unless they are about it | Each rule can then be checked alone with round numbers. |
+
 ## 2026-11-15, session 1 continued: firing, cover and a first look
 
 ### What prompted it

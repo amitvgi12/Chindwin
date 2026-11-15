@@ -12,10 +12,15 @@ what was decided since. Where they differ, this file wins.
 - **Gate 0 passed on 15 November 2026. Phase 1 (grey-box combat) is under way.**
 - Built so far: the simulation core; a test-range map; two teams that can be
   selected, moved and told to hold fire; rifles with counted ammunition for both
-  sides; cover that protects only against fire coming over it; and a placeholder
-  "map in the rain" look drawn in code.
-- Not built yet: suppression, will to fight, enemy behaviour beyond "shoot the
-  nearest man", weather as a rule, any way to win or lose.
+  sides; cover that protects only against fire coming over it; waypoints;
+  suppression with a pinned state and a meter over each man; and a placeholder
+  "map in the rain" look drawn in code, which Amit has accepted as the working
+  direction until the Phase 3 art decision.
+- Not built yet: a broken state (falling back, surrender), enemy behaviour beyond
+  standing and shooting, condition (hunger, fatigue), weather as a rule, any way to
+  win or lose.
+- CI is green on GitHub, including the recorded battle, so the simulation gives the
+  same result on macOS and Linux so far.
 - **Purpose: this build is a demo.** Amit may later take the game towards his earlier
   3D vision if the demo and investors support it. That is a decision for after the
   demo, made in writing. Until then every hard constraint below stands.

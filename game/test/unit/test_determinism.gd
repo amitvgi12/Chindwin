@@ -6,17 +6,17 @@ const TEST_RANGE: String = "res://data/scenarios/test_range.json"
 const RULES: String = "res://data/rules/prototype_rules.tres"
 
 ## State of the shipped test range after the scripted battle below, seed 1944.
-## Each soldier reads id:x,y,up-or-down,cells-left-to-walk,rounds-left.
+## Each soldier reads id:x,y,alive,cells-left-to-walk,rounds-left,suppression.
 ## Recorded on macOS (Apple silicon). CI repeats it on Linux: if this test
 ## fails only there, the simulation is not portable and that must be fixed
 ## before anything else. If you change rules or the test range on purpose,
 ## run the tests, copy the new value from the failure message, and say why
 ## in the commit.
 const GOLDEN_SNAPSHOT: String = (
-	"tick=460 0:22,9,up,0,4 1:22,10,down,0,16 2:21,9,up,0,4 3:22,8,up,0,4 "
-	+ "4:21,10,up,0,4 5:33,4,up,0,15 6:34,4,up,0,16 7:33,5,down,0,17 "
-	+ "8:32,4,up,0,15 9:33,3,up,0,15 10:34,8,down,0,25 11:34,9,down,0,25 "
-	+ "12:34,10,down,0,24 13:34,11,down,0,24"
+	"tick=461 0:22,9,0,0,15,0 1:22,10,1,0,4,0 2:21,9,1,0,9,0 3:22,8,1,0,3,0 "
+	+ "4:21,10,1,0,5,0 5:34,4,1,0,15,0 6:35,4,1,0,15,0 7:34,5,1,0,15,0 "
+	+ "8:23,3,0,0,20,0 9:34,3,1,0,15,0 10:34,8,0,0,25,0 11:34,9,0,0,25,0 "
+	+ "12:34,10,0,0,25,0 13:34,11,0,0,24,0"
 )
 
 
@@ -29,7 +29,10 @@ func _scripted_battle(seed_value: int) -> Simulation:
 	sim.order_move(1, Vector2i(22, 9))
 	for count: int in 60:
 		sim.step()
-	sim.order_move(2, Vector2i(33, 4))
+	# Round the north in two legs, so the route stays out of the picket's sight.
+	sim.order_move(2, Vector2i(29, 2))
+	sim.step()
+	sim.order_move(2, Vector2i(34, 4), true)
 	for count: int in 400:
 		sim.step()
 	return sim

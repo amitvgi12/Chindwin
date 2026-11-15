@@ -115,3 +115,38 @@ func test_team_strength_remembers_the_starting_number() -> void:
 	sim.soldiers[0].alive = false
 	assert_eq(sim.living(PLAYER, 1).size(), 1)
 	assert_eq(sim.strength(PLAYER, 1), 2)
+
+
+func test_a_waypoint_order_adds_a_leg_after_the_current_route() -> void:
+	var sim: Simulation = _sim()
+	sim.order_move(1, Vector2i(6, 4))
+	sim.step()
+	assert_true(sim.order_move(1, Vector2i(6, 7), true))
+	var passed_first_target: bool = false
+	for count: int in 200:
+		sim.step()
+		if sim.soldiers[0].cell == Vector2i(6, 4):
+			passed_first_target = true
+	assert_true(passed_first_target, "he went to the first target on the way")
+	assert_eq(sim.soldiers[0].cell, Vector2i(6, 7), "and then on to the second")
+
+
+func test_without_the_waypoint_flag_the_new_order_replaces_the_route() -> void:
+	var sim: Simulation = _sim()
+	sim.order_move(1, Vector2i(6, 4))
+	sim.step()
+	sim.order_move(1, Vector2i(6, 7))
+	var passed_first_target: bool = false
+	for count: int in 200:
+		sim.step()
+		if sim.soldiers[0].cell == Vector2i(6, 4):
+			passed_first_target = true
+	assert_false(passed_first_target, "he cut straight across")
+	assert_eq(sim.soldiers[0].cell, Vector2i(6, 7))
+
+
+func test_a_waypoint_order_to_a_team_standing_still_is_an_ordinary_order() -> void:
+	var sim: Simulation = _sim()
+	sim.order_move(1, Vector2i(4, 4), true)
+	SimFixture.run(sim, 100)
+	assert_eq(sim.soldiers[0].cell, Vector2i(4, 4))

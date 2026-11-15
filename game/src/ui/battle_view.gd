@@ -49,6 +49,9 @@ const COLOUR_CASUALTY: Color = Color("c9c9c9")
 const COLOUR_SELECTED: Color = Color("ffffff")
 const COLOUR_SHOT_MISSED: Color = Color("e8d44d")
 const COLOUR_SHOT_HIT: Color = Color("ff3b30")
+const COLOUR_METER_BACK: Color = Color(0.0, 0.0, 0.0, 0.6)
+const COLOUR_METER_RISING: Color = Color("e8d44d")
+const COLOUR_METER_PINNED: Color = Color("ff7a1a")
 
 var sim: Simulation
 var paused: bool = true
@@ -87,6 +90,7 @@ func _draw() -> void:
 	_draw_tracks()
 	_draw_banks()
 	_draw_jungle()
+	_draw_routes()
 	_draw_destinations()
 	for soldier: SimSoldier in sim.soldiers:
 		if not soldier.alive:
@@ -156,7 +160,7 @@ func handle_input(event: InputEvent) -> void:
 		if not click.pressed:
 			return
 		if click.button_index == MOUSE_BUTTON_RIGHT:
-			order_selected_team_to(cell_at(click.position))
+			order_selected_team_to(cell_at(click.position), click.shift_pressed)
 		elif click.button_index == MOUSE_BUTTON_LEFT:
 			select_team_at(cell_at(click.position))
 
@@ -179,8 +183,9 @@ func select_team_at(cell: Vector2i) -> void:
 
 
 ## Order the selected team to walk to a cell. Works while paused.
-func order_selected_team_to(cell: Vector2i) -> bool:
-	return sim.order_move(selected_team, cell)
+## With `as_waypoint`, the team finishes its current route first.
+func order_selected_team_to(cell: Vector2i, as_waypoint: bool = false) -> bool:
+	return sim.order_move(selected_team, cell, as_waypoint)
 
 
 ## Switch the selected team between holding fire and firing at will.
@@ -233,6 +238,7 @@ func _refresh_hud() -> void:
 							"team": team_id,
 							"fit": sim.living(SimSoldier.BattleSide.PLAYER, team_id).size(),
 							"total": sim.strength(SimSoldier.BattleSide.PLAYER, team_id),
+							"pinned": sim.pinned_count(SimSoldier.BattleSide.PLAYER, team_id),
 							"rounds": sim.team_rounds(SimSoldier.BattleSide.PLAYER, team_id),
 							"fire": tr(fire_key),
 						}
@@ -242,12 +248,17 @@ func _refresh_hud() -> void:
 		)
 	var enemy_fit: int = 0
 	var enemy_total: int = 0
+	var enemy_pinned: int = 0
 	for team_id: int in sim.team_ids(SimSoldier.BattleSide.ENEMY):
 		enemy_fit += sim.living(SimSoldier.BattleSide.ENEMY, team_id).size()
 		enemy_total += sim.strength(SimSoldier.BattleSide.ENEMY, team_id)
-	strengths.append(tr("HUD_ENEMY").format({"fit": enemy_fit, "total": enemy_total}))
+		enemy_pinned += sim.pinned_count(SimSoldier.BattleSide.ENEMY, team_id)
+	var enemy: String = tr("HUD_ENEMY").format(
+		{"fit": enemy_fit, "total": enemy_total, "pinned": enemy_pinned}
+	)
+	var title: String = "%s: %s" % [tr("GAME_TITLE"), tr(_scenario.name_key)]
 	var lines: PackedStringArray = PackedStringArray()
-	lines.append("%s: %s      %s" % [tr("GAME_TITLE"), tr(_scenario.name_key), status])
+	lines.append("      ".join(PackedStringArray([title, status, enemy])))
 	lines.append("      ".join(strengths))
 	lines.append(tr("HUD_CONTROLS"))
 	_hud_text.text = "\n".join(lines)
@@ -362,6 +373,22 @@ func _draw_jungle() -> void:
 			draw_circle(cell_centre(cell) + offset, radius, COLOUR_JUNGLE[crown])
 
 
+## The route still to be walked by each man of the selected team.
+func _draw_routes() -> void:
+	for soldier: SimSoldier in sim.soldiers:
+		var selected: bool = (
+			soldier.side == SimSoldier.BattleSide.PLAYER and soldier.team_id == selected_team
+		)
+		if not selected or not soldier.is_moving():
+			continue
+		var points: PackedVector2Array = PackedVector2Array([_soldier_position(soldier)])
+		for cell: Vector2i in soldier.path:
+			points.append(cell_centre(cell))
+		var colour: Color = _team_colour(soldier)
+		colour.a = 0.45
+		draw_polyline(points, colour, 1.5, true)
+
+
 ## A small hollow square where each walking player soldier is heading.
 func _draw_destinations() -> void:
 	for soldier: SimSoldier in sim.soldiers:
@@ -374,23 +401,40 @@ func _draw_destinations() -> void:
 
 func _draw_soldier(soldier: SimSoldier) -> void:
 	var centre: Vector2 = _soldier_position(soldier)
+	# A pinned man is drawn smaller: he has his head down.
+	var size: float = 0.75 if sim.is_pinned(soldier) else 1.0
 	if soldier.side == SimSoldier.BattleSide.ENEMY:
-		draw_colored_polygon(_diamond(centre, 14.0), COLOUR_OUTLINE)
-		draw_colored_polygon(_diamond(centre, 11.5), COLOUR_ENEMY)
+		draw_colored_polygon(_diamond(centre, 14.0 * size), COLOUR_OUTLINE)
+		draw_colored_polygon(_diamond(centre, 11.5 * size), COLOUR_ENEMY)
+	else:
+		draw_circle(centre, 12.5 * size, COLOUR_OUTLINE)
+		draw_circle(centre, 10.5 * size, _team_colour(soldier))
+		if soldier.team_id == selected_team:
+			draw_arc(centre, 14.5, 0.0, TAU, 32, COLOUR_SELECTED, 2.0)
+		draw_string(
+			ThemeDB.fallback_font,
+			centre + Vector2(-4, 5),
+			str(soldier.team_id),
+			HORIZONTAL_ALIGNMENT_LEFT,
+			-1,
+			14,
+			Color.BLACK
+		)
+	_draw_suppression_meter(soldier, centre)
+
+
+## A bar over a man's head showing how much fire he is under. It fills from
+## the left, and turns from yellow to orange once he is pinned.
+func _draw_suppression_meter(soldier: SimSoldier, centre: Vector2) -> void:
+	if soldier.suppression <= 0:
 		return
-	draw_circle(centre, 12.5, COLOUR_OUTLINE)
-	draw_circle(centre, 10.5, _team_colour(soldier))
-	if soldier.team_id == selected_team:
-		draw_arc(centre, 14.5, 0.0, TAU, 32, COLOUR_SELECTED, 2.0)
-	draw_string(
-		ThemeDB.fallback_font,
-		centre + Vector2(-4, 5),
-		str(soldier.team_id),
-		HORIZONTAL_ALIGNMENT_LEFT,
-		-1,
-		14,
-		Color.BLACK
-	)
+	var corner: Vector2 = centre + Vector2(-12.0, -22.0)
+	draw_rect(Rect2(corner - Vector2(1, 1), Vector2(26.0, 6.0)), COLOUR_METER_BACK)
+	var colour: Color = COLOUR_METER_PINNED if sim.is_pinned(soldier) else COLOUR_METER_RISING
+	draw_rect(Rect2(corner, Vector2(24.0 * soldier.suppression / 100.0, 4.0)), colour)
+	# A tick marks the level at which a man becomes pinned.
+	var mark_x: float = corner.x + 24.0 * sim.rules.pinned_threshold / 100.0
+	draw_line(Vector2(mark_x, corner.y - 1), Vector2(mark_x, corner.y + 5), Color.WHITE, 1.0)
 
 
 ## A casualty is a pale cross inside the outline of what he was.

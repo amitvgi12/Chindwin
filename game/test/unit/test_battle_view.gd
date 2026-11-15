@@ -132,9 +132,9 @@ func test_the_corner_panel_reports_state_and_strengths() -> void:
 	var text: String = view.hud_text()
 	assert_string_contains(text, "Test range")
 	assert_string_contains(text, "PAUSED")
-	assert_string_contains(text, "Team 1: 5 of 5 fit, 100 rounds, firing")
-	assert_string_contains(text, "Team 2: 5 of 5 fit, 100 rounds, firing")
-	assert_string_contains(text, "Enemy picket: 4 of 4")
+	assert_string_contains(text, "Team 1: 5 of 5 fit, 0 pinned, 100 rounds, firing")
+	assert_string_contains(text, "Team 2: 5 of 5 fit, 0 pinned, 100 rounds, firing")
+	assert_string_contains(text, "Enemy picket: 4 of 4, 0 pinned")
 
 
 func test_no_text_key_is_shown_raw_in_the_corner_panel() -> void:
@@ -156,7 +156,9 @@ func test_f_tells_only_the_selected_team_to_hold_fire() -> void:
 	assert_false(view.team_is_firing(2))
 	assert_true(view.team_is_firing(1), "team 1 was not told anything")
 	view._process(0.0)
-	assert_string_contains(view.hud_text(), "Team 2: 5 of 5 fit, 100 rounds, holding fire")
+	assert_string_contains(
+		view.hud_text(), "Team 2: 5 of 5 fit, 0 pinned, 100 rounds, holding fire"
+	)
 	view.toggle_pause()
 	view.advance(0.1)
 	assert_false(view.sim.team_may_fire(SimSoldier.BattleSide.PLAYER, 2), "order reached the sim")
@@ -180,3 +182,22 @@ func test_restart_puts_both_teams_back_to_firing() -> void:
 
 func test_a_rifle_carries_its_placeholder_label() -> void:
 	assert_eq(tr("WEAPON_RIFLE"), "Rifle (placeholder)")
+
+
+func test_shift_right_click_adds_a_waypoint_instead_of_replacing_the_route() -> void:
+	view.handle_input(_click(MOUSE_BUTTON_RIGHT, Vector2i(8, 9)))
+	view.toggle_pause()
+	view.advance(0.1)
+	var first_leg: int = _first_of_team(1).path.size()
+	var waypoint: InputEventMouseButton = _click(MOUSE_BUTTON_RIGHT, Vector2i(8, 3))
+	waypoint.shift_pressed = true
+	view.handle_input(waypoint)
+	view.advance(0.1)
+	assert_gt(_first_of_team(1).path.size(), first_leg, "the route got longer")
+	assert_eq(_first_of_team(1).destination(), Vector2i(8, 3))
+
+
+func test_the_status_strip_counts_pinned_men() -> void:
+	_first_of_team(1).suppression = 100
+	view._process(0.0)
+	assert_string_contains(view.hud_text(), "Team 1: 5 of 5 fit, 1 pinned")

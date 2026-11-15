@@ -26,6 +26,8 @@ var rounds: int = 0
 var fire_allowed: bool = true
 ## Ticks until he may fire again.
 var fire_cooldown_ticks: int = 0
+## Pressure from incoming fire, 0 to 100. Fades when the firing stops.
+var suppression: int = 0
 
 
 func is_moving() -> bool:

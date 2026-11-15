@@ -15,6 +15,24 @@ static func rules() -> SimRules:
 	result.move_ticks_orthogonal = 5
 	result.move_ticks_diagonal = 7
 	result.cover_hit_percent = 50
+	# Suppression is off unless a test turns it on, so that other rules can
+	# be tested one at a time.
+	result.suppression_per_shot = 0
+	result.suppression_splash = 0
+	return result
+
+
+## The same rules with suppression on, in round numbers: 10 per shot, 4 to a
+## neighbour, halved by cover, one point lost every 5 ticks, pinned at 30.
+static func rules_with_suppression() -> SimRules:
+	var result: SimRules = rules()
+	result.suppression_per_shot = 10
+	result.suppression_splash = 4
+	result.cover_suppression_percent = 50
+	result.suppression_decay_ticks = 5
+	result.pinned_threshold = 30
+	result.pinned_fire_interval_percent = 200
+	result.pinned_hit_percent = 50
 	return result
 
 

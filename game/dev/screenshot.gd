@@ -7,7 +7,7 @@ extends SceneTree
 
 const SCENE_PATH: String = "res://scenes/test_range.tscn"
 ## Game time to play before taking the picture, in simulation ticks.
-const TICKS_BEFORE_PICTURE: int = 300
+const TICKS_BEFORE_PICTURE: int = 215
 ## Give up after this many frames so the tool can never hang.
 const FRAME_LIMIT: int = 300000
 
@@ -32,7 +32,8 @@ func _process(_delta: float) -> bool:
 		_view.select_team(1)
 		_view.order_selected_team_to(Vector2i(22, 9))
 		_view.select_team(2)
-		_view.order_selected_team_to(Vector2i(33, 4))
+		_view.order_selected_team_to(Vector2i(29, 2))
+		_view.order_selected_team_to(Vector2i(34, 4), true)
 		_view.toggle_pause()
 	if _view.sim.tick < TICKS_BEFORE_PICTURE and _frames < FRAME_LIMIT:
 		return false
