@@ -13,10 +13,7 @@ extends Resource
 ## Ticks a soldier needs to walk one cell diagonally.
 @export var move_ticks_diagonal: int = 7
 
-@export_group("Enemy fire (placeholder until weapons are data)")
-## How far an enemy soldier can shoot, in cells.
-@export var enemy_range_cells: int = 14
-## Ticks between two shots by the same enemy soldier.
-@export var enemy_fire_interval_ticks: int = 12
-## Chance from 0 to 100 that one shot causes a casualty.
-@export var enemy_hit_chance_percent: int = 12
+@export_group("Cover")
+## Share of the normal hit chance that is left when the target is behind
+## cover, from 0 (cover is perfect) to 100 (cover does nothing).
+@export var cover_hit_percent: int = 35

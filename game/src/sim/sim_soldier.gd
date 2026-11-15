@@ -18,6 +18,12 @@ var path: Array[Vector2i] = []
 var step_ticks_left: int = 0
 ## Length in ticks of the step in progress. Used by the view to draw him between cells.
 var step_ticks_total: int = 0
+## What he shoots with. Null means he cannot fire.
+var weapon: WeaponDef
+## Rounds he has left.
+var rounds: int = 0
+## False when his team has been told to hold fire.
+var fire_allowed: bool = true
 ## Ticks until he may fire again.
 var fire_cooldown_ticks: int = 0
 

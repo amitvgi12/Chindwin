@@ -9,13 +9,21 @@ class SoldierSpec:
 	var side: SimSoldier.BattleSide
 	var team_id: int
 	var cell: Vector2i
+	## File name, without extension, of a weapon in data/weapons/.
+	var weapon_id: String
+	var rounds: int
 
 
 ## Translation key for the scenario's display name.
 var name_key: String = ""
 var width: int = 0
 var height: int = 0
+## Tall obstacles: stop movement and sight.
 var blocked: Array[Vector2i] = []
+## Low obstacles: stop movement, not sight, and give cover.
+var cover: Array[Vector2i] = []
+## Tracks, each a list of cells. Drawn on the map only; no rule uses them yet.
+var tracks: Array[PackedVector2Array] = []
 var soldiers: Array[SoldierSpec] = []
 ## Problems found while loading, in plain words. Empty means the scenario is usable.
 var errors: Array[String] = []
@@ -42,7 +50,11 @@ static func from_json_text(text: String) -> Scenario:
 	if scenario.width < 1 or scenario.height < 1:
 		scenario.errors.append("width and height must be 1 or more")
 		return scenario
-	scenario._read_blocked_rects(data.get("blocked_rects", []))
+	scenario.blocked = scenario._read_rects(data.get("blocked_rects", []), "blocked_rects")
+	for cell: Vector2i in scenario._read_rects(data.get("cover_rects", []), "cover_rects"):
+		if not scenario.blocked.has(cell):
+			scenario.cover.append(cell)
+	scenario._read_tracks(data.get("tracks", []))
 	scenario._read_soldiers(data.get("soldiers", []))
 	return scenario
 
@@ -51,14 +63,25 @@ func is_valid() -> bool:
 	return errors.is_empty()
 
 
-func _read_blocked_rects(value: Variant) -> void:
+## Weapon ids the soldiers ask for that are not in `weapons`.
+func missing_weapons(weapons: Dictionary[String, WeaponDef]) -> Array[String]:
+	var missing: Array[String] = []
+	for spec: SoldierSpec in soldiers:
+		if not weapons.has(spec.weapon_id) and not missing.has(spec.weapon_id):
+			missing.append(spec.weapon_id)
+	return missing
+
+
+## Every cell covered by a list of [x, y, width, height] rectangles.
+func _read_rects(value: Variant, what: String) -> Array[Vector2i]:
+	var cells: Array[Vector2i] = []
 	if not value is Array:
-		errors.append("blocked_rects must be a list")
-		return
+		errors.append("%s must be a list" % what)
+		return cells
 	var rects: Array = value
 	var seen: Dictionary[Vector2i, bool] = {}
 	for entry: Variant in rects:
-		var numbers: Array[int] = _as_int_list(entry, 4, "blocked_rects entry", errors)
+		var numbers: Array[int] = _as_int_list(entry, 4, "%s entry" % what, errors)
 		if numbers.is_empty():
 			continue
 		for y: int in range(numbers[1], numbers[1] + numbers[3]):
@@ -66,7 +89,25 @@ func _read_blocked_rects(value: Variant) -> void:
 				var cell: Vector2i = Vector2i(x, y)
 				if not seen.has(cell):
 					seen[cell] = true
-					blocked.append(cell)
+					cells.append(cell)
+	return cells
+
+
+func _read_tracks(value: Variant) -> void:
+	if not value is Array:
+		errors.append("tracks must be a list")
+		return
+	for entry: Variant in value as Array:
+		if not entry is Array:
+			errors.append("each track must be a list of cells")
+			continue
+		var points: PackedVector2Array = PackedVector2Array()
+		for point: Variant in entry as Array:
+			var numbers: Array[int] = _as_int_list(point, 2, "track cell", errors)
+			if not numbers.is_empty():
+				points.append(Vector2(numbers[0], numbers[1]))
+		if points.size() >= 2:
+			tracks.append(points)
 
 
 func _read_soldiers(value: Variant) -> void:
@@ -90,14 +131,22 @@ func _read_soldiers(value: Variant) -> void:
 			errors.append("soldier side must be 'player' or 'enemy', got '%s'" % side_name)
 			continue
 		spec.team_id = _as_int(fields.get("team"), "soldier team", errors)
+		spec.weapon_id = str(fields.get("weapon", ""))
+		if spec.weapon_id.is_empty():
+			errors.append("each soldier needs a weapon")
+			continue
+		spec.rounds = _as_int(fields.get("rounds"), "soldier rounds", errors)
+		if spec.rounds < 0:
+			errors.append("soldier rounds cannot be negative")
+			continue
 		var position: Array[int] = _as_int_list(fields.get("cell"), 2, "soldier cell", errors)
 		if position.is_empty():
 			continue
 		spec.cell = Vector2i(position[0], position[1])
 		if spec.cell.x < 0 or spec.cell.y < 0 or spec.cell.x >= width or spec.cell.y >= height:
 			errors.append("soldier at %s is off the map" % spec.cell)
-		elif blocked.has(spec.cell):
-			errors.append("soldier at %s stands on a blocked cell" % spec.cell)
+		elif blocked.has(spec.cell) or cover.has(spec.cell):
+			errors.append("soldier at %s stands on an obstacle" % spec.cell)
 		elif occupied.has(spec.cell):
 			errors.append("two soldiers share the cell %s" % spec.cell)
 		else:
