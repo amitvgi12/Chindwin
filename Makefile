@@ -62,7 +62,7 @@ check: assets-check lint scripts-check test
 
 screenshot: import
 	mkdir -p build
-	$(GODOT) --path $(GAME) -s res://dev/screenshot.gd -- --out=$(CURDIR)/build/screenshot.png
+	$(GODOT) --path $(GAME) -s res://dev/screenshot.gd -- --out=$(CURDIR)/build/screenshot.png --scene=$(SCENE)
 
 export-windows: import
 	tools/export_windows.sh

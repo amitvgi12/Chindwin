@@ -1,18 +1,24 @@
 extends SceneTree
-## Dev tool, not part of the game. Opens the test range in a window, plays a
-## short scripted battle, saves a picture of the screen and quits.
-## Claude uses it to look at the game; it is also a quick visual smoke test.
+## Dev tool, not part of the game. Opens a scene in a window, saves a picture
+## of the screen and quits. Claude uses it to look at the game; it is also a
+## quick visual smoke test.
 ##
-## Run with: make screenshot     (writes build/screenshot.png)
+##   make screenshot                                     the test range, mid-battle
+##   make screenshot SCENE=res://scenes/briefing.tscn    any other scene
+##
+## Both write build/screenshot.png.
 
-const SCENE_PATH: String = "res://scenes/test_range.tscn"
-## Game time to play before taking the picture, in simulation ticks.
+const DEFAULT_SCENE: String = "res://scenes/test_range.tscn"
+## For the test range: game time to play before the picture, in ticks.
 const TICKS_BEFORE_PICTURE: int = 215
+## For any other scene: frames to wait so it has drawn.
+const FRAMES_BEFORE_PICTURE: int = 30
 ## Give up after this many frames so the tool can never hang.
 const FRAME_LIMIT: int = 300000
 
-var _view: BattleView
+var _scene: Node
 var _frames: int = 0
+var _scene_path: String = DEFAULT_SCENE
 var _output_path: String = "user://screenshot.png"
 
 
@@ -20,24 +26,35 @@ func _initialize() -> void:
 	for argument: String in OS.get_cmdline_user_args():
 		if argument.begins_with("--out="):
 			_output_path = argument.trim_prefix("--out=")
-	var packed: PackedScene = load(SCENE_PATH) as PackedScene
-	_view = packed.instantiate() as BattleView
-	root.add_child(_view)
+		elif argument.begins_with("--scene=") and argument.length() > 8:
+			_scene_path = argument.trim_prefix("--scene=")
+	var packed: PackedScene = load(_scene_path) as PackedScene
+	_scene = packed.instantiate()
+	root.add_child(_scene)
 
 
 func _process(_delta: float) -> bool:
 	_frames += 1
-	if _frames == 2:
-		# Team 1 goes to the bank facing the picket; team 2 flanks round the north.
-		_view.select_team(1)
-		_view.order_selected_team_to(Vector2i(22, 9))
-		_view.select_team(2)
-		_view.order_selected_team_to(Vector2i(29, 2))
-		_view.order_selected_team_to(Vector2i(34, 4), true)
-		_view.toggle_pause()
-	if _view.sim.tick < TICKS_BEFORE_PICTURE and _frames < FRAME_LIMIT:
-		return false
+	var view: BattleView = _scene as BattleView
+	if view == null:
+		if _frames < FRAMES_BEFORE_PICTURE:
+			return false
+	else:
+		if _frames == 2:
+			_start_scripted_battle(view)
+		if view.sim.tick < TICKS_BEFORE_PICTURE and _frames < FRAME_LIMIT:
+			return false
 	var picture: Image = root.get_texture().get_image()
 	var result: Error = picture.save_png(_output_path)
 	print("screenshot: %s (%s)" % [_output_path, error_string(result)])
 	return true
+
+
+## Team 1 goes to the bank facing the picket; team 2 flanks round the north.
+func _start_scripted_battle(view: BattleView) -> void:
+	view.select_team(1)
+	view.order_selected_team_to(Vector2i(22, 9))
+	view.select_team(2)
+	view.order_selected_team_to(Vector2i(29, 2))
+	view.order_selected_team_to(Vector2i(34, 4), true)
+	view.toggle_pause()

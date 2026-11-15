@@ -2,10 +2,10 @@ extends GutTest
 ## Smoke tests for the scaffolding: the project starts on the right scene,
 ## its text pipeline works, and typed code stays enforced.
 
-const MAIN_SCENE: String = "res://scenes/test_range.tscn"
+const MAIN_SCENE: String = "res://scenes/briefing.tscn"
 
 
-func test_main_scene_is_the_test_range() -> void:
+func test_main_scene_is_the_briefing() -> void:
 	var main_scene: String = ProjectSettings.get_setting("application/run/main_scene")
 	assert_eq(main_scene, MAIN_SCENE)
 
@@ -15,7 +15,7 @@ func test_main_scene_instantiates() -> void:
 	assert_not_null(packed, "main scene should load")
 	var scene: Node = packed.instantiate()
 	add_child_autofree(scene)
-	assert_true(scene is BattleView)
+	assert_true(scene is Briefing)
 
 
 func test_text_keys_resolve_to_english() -> void:

@@ -5,10 +5,21 @@ SCENARIO_TEST_RANGE,Test range
 WEAPON_RIFLE,Rifle (placeholder)
 HUD_PAUSED,PAUSED
 HUD_RUNNING,RUNNING
-HUD_STATUS,"{state}   Time {time}   Selected: Team {team}"
+HUD_STATUS,{state}   Time {time}   Selected: Team {team}
 HUD_TEAM,"Team {team}: {fit} of {total} fit, {pinned} pinned, {rounds} rounds, {fire}"
 HUD_FIRE_ON,firing
 HUD_FIRE_OFF,holding fire
 HUD_ENEMY,"Enemy picket: {fit} of {total}, {pinned} pinned"
 HUD_CONTROLS,"Space: pause   1, 2: select team   Right-click: move   Shift + right-click: add a waypoint   F: hold or resume fire   R: restart"
 HUD_PAUSED_BANNER,"PAUSED. Give orders, then press Space."
+BRIEFING_1,Late June 1944. The hills south of the Palel-Tamu road.
+BRIEFING_2,In early May the brigade attacked the airfield at Palel and was thrown back.
+BRIEFING_3,The Indian soldiers defending it did not come over. They fought.
+BRIEFING_4,"Since then the brigade has held on in these hills, raiding British patrols and road-blocks."
+BRIEFING_5,Supplies are not coming.
+BRIEFING_6,More than half the brigade is sick or wounded.
+BRIEFING_7,Men have begun to slip away.
+BRIEFING_8,Your section is going out against one of the road-blocks.
+BRIEFING_NOTE,"The ground you are about to see is a test range, not the real place. Your section and this raid are fiction."
+BRIEFING_SOURCE,"Source: Chandar S. Sundaram, ""A Paper Tiger"", War & Society 13:1 (1995), pp. 48-49. One source so far; this text may change."
+BRIEFING_CONTINUE,Press Space to begin.
