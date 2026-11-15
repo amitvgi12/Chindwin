@@ -2,6 +2,52 @@
 
 What was done, what was decided, and why. Newest session first.
 
+## 2026-11-15, session 1 continued: the Phase 1 build is ready for Gate 1
+
+### Reported by Amit
+
+- CI green on the Gate 1 criterion commit, so the criterion test passes on Linux too.
+- "Continue for next." He has not yet reported playing the suppression build.
+
+### Done
+
+- **Fall back** (`B`). The selected team returns to where each man started. Men
+  falling back walk even when pinned and do not fire. A later move order cancels it.
+- **"How to play" page** after the briefing and on `H` during play: the keys, and what
+  the marks on the map mean. Opening it pauses the game.
+- **Debug overlay** (`O`): the enemy's range, red lines to men he can hit, grey lines
+  to men he sees but cannot hit, green lines where your man has a clear shot, each
+  man's suppression number and state, and the enemy's last six decisions.
+- A team with nobody left now reads "none left" in the status strip.
+- **Gate 1 playtest sheet** in `docs/GATE1_PLAYTEST.md`.
+- 158 tests pass. `make check` is clean.
+
+### How to see it
+
+`make run`. Space through the briefing and the "how to play" page. On the map, press
+`O` to see who can hit whom, `H` for help, and `B` after an advance to pull a team
+back.
+
+### Verified
+
+- Rules by unit tests. The "how to play" page and the overlay by screenshot.
+
+### Not verified
+
+- Everything about feel. This is the first build meant to be judged for it.
+- Whether the "how to play" page is enough for criterion 4 (orders within two minutes).
+- The Windows export job in CI, and the Windows build itself.
+
+### Decisions and why
+
+| Decision | Why |
+|---|---|
+| Added a fall-back order before the playtest | The GDD lists it as a core order and says withdrawing is always a legitimate result. Without it, a team pinned in the open could only wait to be shot. |
+| Fall back goes to the starting position, with no target to pick | One key, usable in a panic. A chosen destination can come later if the playtest asks for it. |
+| The two balance worries were left alone | Whether a wiped-out frontal attack feels unfair, and whether covering fire feels worth it, are questions about feel. Changing them before Amit plays would be guessing. |
+| Debug text is not translated beyond its headings | The enemy's decision log is a developer note. It is not shown unless the overlay is on. |
+| Stopped here | Gate 1 is Amit's to judge. Phase 2 does not start until it passes. |
+
 ## 2026-11-15, session 1 continued: briefing, enemy behaviour, Gate 1 criterion 1
 
 ### Reported by Amit

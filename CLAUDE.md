@@ -9,17 +9,20 @@ what was decided since. Where they differ, this file wins.
 
 ## Current state
 
-- **Gate 0 passed on 15 November 2026. Phase 1 (grey-box combat) is under way.**
+- **Gate 0 passed on 15 November 2026. The Phase 1 build is ready and waiting at
+  Gate 1** for Amit to play it against `docs/GATE1_PLAYTEST.md`. Do not start Phase 2
+  work until he reports that Gate 1 has passed.
 - Built so far: the simulation core; a test-range map; two teams that can be
   selected, moved and told to hold fire; rifles with counted ammunition for both
   sides; cover that protects only against fire coming over it; waypoints;
   suppression with pinned and broken states and a meter over each man; an enemy
-  picket that falls back, with a decision log; an opening briefing; and a
-  placeholder "map in the rain" look drawn in code, which Amit has accepted as the
-  working direction until the Phase 3 art decision.
+  picket that falls back, with a decision log; a fall-back order; an opening
+  briefing and a "how to play" page; a debug overlay; and a placeholder "map in the
+  rain" look drawn in code, which Amit has accepted as the working direction until
+  the Phase 3 art decision.
 - **Gate 1 criterion 1 is met and is now a test** (`test_gate1_criterion.gd`). Run
   `make gate1` to see the battles behind it. Criteria 2 to 5 need Amit to play.
-- Not built yet: the debug overlay, condition (hunger, fatigue), weather as a rule,
+- Not built yet (all Phase 2): condition (hunger, fatigue), weather as a rule,
   scavenging, appeals, formal win and lose conditions, save and load.
 - CI is green on GitHub, including the recorded battle, so the simulation gives the
   same result on macOS and Linux so far.
@@ -109,7 +112,7 @@ Run from the repository root. `make` lists them.
 | `make check` | Everything CI runs: asset ledger, lint, compile check, tests. Run before every commit. |
 | `make format` | Rewrites GDScript files into the standard format. |
 | `make gate1` | Plays the Gate 1 attacks ten times each and prints every battle with the enemy's decisions. `make gate1 RUNS=200` prints totals for a larger sample. Use it before and after changing anything in `game/data/`. |
-| `make screenshot` | Opens the game for a few seconds, plays a scripted battle and saves `build/screenshot.png`. Lets Claude look at the game. A window appears briefly. |
+| `make screenshot` | Opens the game for a few seconds, plays a scripted battle and saves `build/screenshot.png`. Lets Claude look at the game. A window appears briefly. Add `OVERLAY=1` for the debug overlay or `SCENE=res://scenes/briefing.tscn` for another scene. |
 | `make setup-templates` | Downloads the Windows export templates (1.3 GB, once). |
 | `make export-windows` | Builds `build/windows/BeyondTheChindwin.exe`. |
 

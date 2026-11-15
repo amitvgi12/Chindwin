@@ -4,6 +4,7 @@ extends SceneTree
 ## quick visual smoke test.
 ##
 ##   make screenshot                                     the test range, mid-battle
+##   make screenshot OVERLAY=1                           the same, debug overlay on
 ##   make screenshot SCENE=res://scenes/briefing.tscn    any other scene
 ##
 ## Both write build/screenshot.png.
@@ -20,12 +21,15 @@ var _scene: Node
 var _frames: int = 0
 var _scene_path: String = DEFAULT_SCENE
 var _output_path: String = "user://screenshot.png"
+var _overlay: bool = false
 
 
 func _initialize() -> void:
 	for argument: String in OS.get_cmdline_user_args():
 		if argument.begins_with("--out="):
 			_output_path = argument.trim_prefix("--out=")
+		elif argument == "--overlay":
+			_overlay = true
 		elif argument.begins_with("--scene=") and argument.length() > 8:
 			_scene_path = argument.trim_prefix("--scene=")
 	var packed: PackedScene = load(_scene_path) as PackedScene
@@ -59,4 +63,5 @@ func _start_scripted_battle(view: BattleView) -> void:
 	view.order_selected_team_to(Vector2i(20, 1))
 	view.order_selected_team_to(Vector2i(33, 1), true)
 	view.order_selected_team_to(Vector2i(35, 4), true)
+	view.debug_overlay = _overlay
 	view.toggle_pause()

@@ -8,7 +8,10 @@ const PAUSE: StringName = &"game_pause"
 const SELECT_TEAM_1: StringName = &"game_select_team_1"
 const SELECT_TEAM_2: StringName = &"game_select_team_2"
 const TOGGLE_FIRE: StringName = &"game_toggle_fire"
+const FALL_BACK: StringName = &"game_fall_back"
 const RESTART: StringName = &"game_restart"
+const HELP: StringName = &"game_help"
+const TOGGLE_OVERLAY: StringName = &"game_toggle_overlay"
 
 
 ## Register any action that does not exist yet. Safe to call more than once.
@@ -17,7 +20,10 @@ static func ensure_defaults() -> void:
 	_add_key(SELECT_TEAM_1, KEY_1)
 	_add_key(SELECT_TEAM_2, KEY_2)
 	_add_key(TOGGLE_FIRE, KEY_F)
+	_add_key(FALL_BACK, KEY_B)
 	_add_key(RESTART, KEY_R)
+	_add_key(HELP, KEY_H)
+	_add_key(TOGGLE_OVERLAY, KEY_O)
 
 
 static func _add_key(action: StringName, key: Key) -> void:

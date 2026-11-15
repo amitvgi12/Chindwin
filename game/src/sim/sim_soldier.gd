@@ -9,6 +9,8 @@ var id: int
 var side: BattleSide
 var team_id: int
 var cell: Vector2i
+## Where he stood when the scenario began. A team falling back returns here.
+var start_cell: Vector2i
 ## False once he is a casualty. A casualty takes no further part.
 var alive: bool = true
 
@@ -30,7 +32,9 @@ var fire_cooldown_ticks: int = 0
 var suppression: int = 0
 ## True from the moment he breaks until the pressure has faded. He does not fire.
 var broken: bool = false
-## True while he is leaving his position for the rear.
+## True while he is going back: an enemy to the rear and out of the fight, one
+## of the player's men to where he started. He walks even when pinned and
+## does not fire.
 var falling_back: bool = false
 ## True once he has left the fight unhurt. He takes no further part.
 var withdrawn: bool = false

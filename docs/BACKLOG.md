@@ -10,26 +10,30 @@ L is a week or more of sessions.
 | # | Task | Size |
 |---|---|---|
 | 1 | `git push` and confirm CI stays green. | S |
-| 2 | **Play for thirty minutes against Gate 1 criteria 2 to 5** in `docs/SCOPE.md`: do you restart unprompted, can you explain each loss, are orders quick, do you want another go? Say what happened for each. | M |
+| 2 | **Gate 1.** Play one sitting following `docs/GATE1_PLAYTEST.md` and paste the answers back. | M |
 | 3 | Find a library or loan copy of Shah Nawaz Khan's memoir or Fay's *The Forgotten Army*. | M |
 
 ## Phase 1: remaining
 
-| # | Task | Size |
-|---|---|---|
-| 1 | Act on what Amit reports from playing. Likely first: a frontal attack is wiped out to the last man, which may be too absolute; and covering fire adds less than the flank itself does. | M |
-| 2 | Debug overlay: sight lines, who can see whom, the enemy's log on screen. | M |
-| 3 | A one-screen controls card, reachable from the briefing. | S |
-| 4 | Gate 1 playtest script. | S |
+Nothing is planned until Amit reports on Gate 1. What he reports decides the next
+change. Two things the numbers already suggest:
 
-Known rough edges, to fix as the systems above arrive:
+- A frontal attack is wiped out to the last man, which may read as unfair. The
+  fall-back order now gives a way out; whether that is enough is for the playtest.
+- Covering fire adds less than the flank itself does.
+
+Known rough edges:
 
 - Soldiers walk through each other on the way; they only end on separate cells.
-- A team with nobody left still reads "firing" in the status strip.
 - Rain is decoration. It affects nothing until Phase 2.
 - The track is decoration. Walking on it is no faster.
-- Pinned men in the open never crawl back to cover; they stay until shot.
 - The picket never moves to face a flank. It holds or it leaves.
+- A team falls back only to where it started, not to a place of your choosing.
+
+## Phase 2: not started, do not start before Gate 1 passes
+
+Weather states and effects. Ammunition scavenging. Fatigue and hunger. One appeal
+encounter. Win, lose and withdraw conditions. Save and load.
 
 ## Phase 1: done
 
@@ -47,6 +51,7 @@ Known rough edges, to fix as the systems above arrive:
 | Opening briefing from the checked history rows. | 15 Nov 2026 |
 | Broken state, withdrawal, and enemy picket behaviour with a decision log. | 15 Nov 2026 |
 | Gate 1 criterion 1 as an automated test, and the numbers tuned to meet it. | 15 Nov 2026 |
+| Fall-back order. "How to play" page. Debug overlay. Gate 1 playtest sheet. | 15 Nov 2026 |
 
 ## History: runs alongside, blocked on sources
 

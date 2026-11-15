@@ -10,7 +10,7 @@ HUD_TEAM,"Team {team}: {fit} of {total} fit, {pinned} pinned, {rounds} rounds, {
 HUD_FIRE_ON,firing
 HUD_FIRE_OFF,holding fire
 HUD_ENEMY,"Enemy picket: {fit} of {total}, {pinned} pinned, {withdrew} withdrew"
-HUD_CONTROLS,"Space: pause   1, 2: select team   Right-click: move   Shift + right-click: add a waypoint   F: hold or resume fire   R: restart"
+HUD_CONTROLS,"Space: pause   1, 2: team   Right-click: move   Shift + right-click: waypoint   F: hold fire   B: fall back   R: restart   H: help   O: overlay"
 HUD_PAUSED_BANNER,"PAUSED. Give orders, then press Space."
 BRIEFING_1,Late June 1944. The hills south of the Palel-Tamu road.
 BRIEFING_2,In early May the brigade attacked the airfield at Palel and was thrown back.
@@ -25,3 +25,26 @@ BRIEFING_SOURCE,"Source: Chandar S. Sundaram, ""A Paper Tiger"", War & Society 1
 BRIEFING_CONTINUE,Press Space to begin.
 HUD_OUTCOME_CLEARED,"The picket is gone: {fell} fell, {withdrew} withdrew. You have {fit} of {total} men fit. Press R to go again."
 HUD_OUTCOME_LOST,Your section is finished. Press R to go again.
+HUD_TEAM_GONE,Team {team}: none left
+CONTROLS_TITLE,How to play
+CONTROLS_KEYS_HEADING,Keys
+CONTROLS_KEY_1,Space pauses and resumes. Give your orders while paused.
+CONTROLS_KEY_2,1 and 2 select a team. Clicking one of your men selects his team.
+CONTROLS_KEY_3,Right-click sends the selected team to that spot.
+CONTROLS_KEY_4,Shift + right-click adds a further leg to its route.
+CONTROLS_KEY_5,"F tells the selected team to hold fire, or to fire again."
+CONTROLS_KEY_6,"B makes the selected team fall back to where it started. Men falling back go even when pinned, and do not fire."
+CONTROLS_KEY_7,R starts again. H shows this page. O shows the debug overlay.
+CONTROLS_MARKS_HEADING,What you are looking at
+CONTROLS_MARK_1,"Circles are your men, marked with their team number. Diamonds are the enemy."
+CONTROLS_MARK_2,The bar over a man shows how much fire he is under. Past the white tick he is pinned: he stops walking and fires slower and worse. Red means he has broken and will not fire.
+CONTROLS_MARK_3,Dark green is thick jungle. Nobody can walk or see through it.
+CONTROLS_MARK_4,A brown bank is cover. A man within two cells behind it cannot be hit by fire that comes over it. Fire from the side still hits him.
+CONTROLS_MARK_5,A man who is walking does not fire.
+CONTROLS_MARK_6,Rounds are counted. A man with none left cannot fire.
+CONTROLS_CONTINUE,Press Space to continue.
+CONTROLS_CLOSE,Press H to close.
+DEBUG_TITLE,Debug overlay (O hides it)   seed {seed}   tick {tick}
+DEBUG_LEGEND,"Red line: the enemy can hit that man. Grey line: he is seen but covered. Green line: your man has a clear shot. Number: suppression. P pinned, B broken, F falling back."
+DEBUG_LOG_HEADING,"Enemy decisions, newest last:"
+DEBUG_LOG_EMPTY,(none yet)

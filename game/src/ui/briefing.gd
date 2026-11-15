@@ -5,7 +5,7 @@ extends Control
 ## Every sentence shown here has a row in docs/history/mission-01.md with its
 ## source. Do not add or change a BRIEFING_ string without changing that file.
 
-const NEXT_SCENE: String = "res://scenes/test_range.tscn"
+const NEXT_SCENE: String = "res://scenes/controls.tscn"
 ## Keys of the briefing sentences, in order. The first is shown as the heading.
 const SENTENCE_KEYS: Array[String] = [
 	"BRIEFING_1",

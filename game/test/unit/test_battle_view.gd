@@ -223,3 +223,56 @@ func test_the_banner_reports_a_lost_section() -> void:
 	view.toggle_pause()
 	view._process(0.0)
 	assert_string_contains(view.banner_text(), "Your section is finished")
+
+
+func test_b_orders_the_selected_team_to_fall_back() -> void:
+	view.handle_input(_click(MOUSE_BUTTON_RIGHT, Vector2i(8, 9)))
+	view.toggle_pause()
+	for count: int in 60:
+		view.advance(0.1)
+	var man: SimSoldier = _first_of_team(1)
+	assert_ne(man.cell, man.start_cell, "the team has gone forward")
+	view.handle_input(_key(KEY_B))
+	view.advance(0.1)
+	assert_true(man.falling_back)
+	for count: int in 80:
+		view.advance(0.1)
+	assert_eq(man.cell, man.start_cell, "and come back")
+
+
+func test_h_shows_the_help_page_and_pauses_the_game() -> void:
+	view.toggle_pause()
+	assert_false(view.help_is_showing())
+	view.handle_input(_key(KEY_H))
+	assert_true(view.help_is_showing())
+	assert_true(view.paused, "the fight does not go on behind the page")
+	view.handle_input(_key(KEY_H))
+	assert_false(view.help_is_showing())
+	assert_true(view.paused, "closing the page leaves the game paused")
+
+
+func test_o_turns_the_debug_overlay_on_and_off() -> void:
+	assert_eq(view.debug_text(), "")
+	view.handle_input(_key(KEY_O))
+	view._process(0.0)
+	assert_string_contains(view.debug_text(), "seed 1944")
+	assert_string_contains(view.debug_text(), "tick 0")
+	assert_string_contains(view.debug_text(), "(none yet)")
+	view.handle_input(_key(KEY_O))
+	view._process(0.0)
+	assert_eq(view.debug_text(), "")
+
+
+func test_the_debug_overlay_lists_the_enemys_decisions() -> void:
+	view.handle_input(_key(KEY_O))
+	view.sim.note_ai("picket 1 falls back: test reason")
+	view._process(0.0)
+	assert_string_contains(view.debug_text(), "tick 0: picket 1 falls back: test reason")
+
+
+func test_a_team_with_nobody_left_says_so() -> void:
+	for soldier: SimSoldier in view.sim.living(SimSoldier.BattleSide.PLAYER, 2):
+		soldier.alive = false
+	view._process(0.0)
+	assert_string_contains(view.hud_text(), "Team 2: none left")
+	assert_false(view.hud_text().contains("Team 2: 0 of 5"))

@@ -9,7 +9,7 @@ extends RefCounted
 
 class Order:
 	extends RefCounted
-	enum Kind { MOVE, FIRE_CONTROL }
+	enum Kind { MOVE, FIRE_CONTROL, FALL_BACK }
 	var kind: Kind
 	var team_id: int
 	## Where to walk to, for MOVE.
@@ -59,6 +59,7 @@ func _init(
 		soldier.side = spec.side
 		soldier.team_id = spec.team_id
 		soldier.cell = spec.cell
+		soldier.start_cell = spec.cell
 		soldier.weapon = weapons.get(spec.weapon_id)
 		soldier.rounds = spec.rounds
 		soldiers.append(soldier)
@@ -92,6 +93,19 @@ func order_fire(team_id: int, fire_allowed: bool) -> bool:
 	order.kind = Order.Kind.FIRE_CONTROL
 	order.team_id = team_id
 	order.fire_allowed = fire_allowed
+	_pending_orders.append(order)
+	return true
+
+
+## Tell a player team to fall back to where it started. Men falling back walk
+## even when pinned and do not fire. Any later move order cancels it.
+## Returns false when nobody is left in the team.
+func order_fall_back(team_id: int) -> bool:
+	if living(SimSoldier.BattleSide.PLAYER, team_id).is_empty():
+		return false
+	var order: Order = Order.new()
+	order.kind = Order.Kind.FALL_BACK
+	order.team_id = team_id
 	_pending_orders.append(order)
 	return true
 
@@ -271,6 +285,8 @@ func _apply_pending_orders() -> void:
 			continue
 		if order.kind == Order.Kind.MOVE:
 			_start_move(team, order)
+		elif order.kind == Order.Kind.FALL_BACK:
+			_start_fall_back(team, order)
 		else:
 			_set_fire_control(team, order)
 	_pending_orders.clear()
@@ -287,6 +303,7 @@ func _start_move(team: Array[SimSoldier], order: Order) -> void:
 		if index >= places.size():
 			break
 		var soldier: SimSoldier = team[index]
+		soldier.falling_back = false
 		if order.append and soldier.is_moving():
 			soldier.path.append_array(grid.find_path(soldier.destination(), places[index]))
 		else:
@@ -294,6 +311,23 @@ func _start_move(team: Array[SimSoldier], order: Order) -> void:
 			soldier.step_ticks_left = 0
 			soldier.step_ticks_total = 0
 	_log(SimEvent.Kind.ORDER_MOVE, order.team_id, -1, order.target)
+
+
+func _start_fall_back(team: Array[SimSoldier], order: Order) -> void:
+	for soldier: SimSoldier in team:
+		# His own starting cell, or the nearest free one if somebody is on it.
+		var taken: Dictionary[Vector2i, bool] = {}
+		for other: SimSoldier in soldiers:
+			if other.in_fight() and other != soldier:
+				taken[other.destination()] = true
+		var places: Array[Vector2i] = grid.free_cells_near(soldier.start_cell, 1, taken)
+		soldier.step_ticks_left = 0
+		soldier.step_ticks_total = 0
+		soldier.path.clear()
+		if not places.is_empty():
+			soldier.path = grid.find_path(soldier.cell, places[0])
+		soldier.falling_back = not soldier.path.is_empty()
+	_log(SimEvent.Kind.ORDER_FALL_BACK, order.team_id, -1, Vector2i.ZERO)
 
 
 func _set_fire_control(team: Array[SimSoldier], order: Order) -> void:
@@ -320,9 +354,12 @@ func _advance_movement(soldier: SimSoldier) -> void:
 	soldier.path.remove_at(0)
 	soldier.step_ticks_total = 0
 	if soldier.path.is_empty():
-		if soldier.falling_back:
+		# An enemy who has gone back is out of the fight. One of the player's
+		# men who has gone back is simply back where he started.
+		if soldier.falling_back and soldier.side == SimSoldier.BattleSide.ENEMY:
 			withdraw(soldier)
 		else:
+			soldier.falling_back = false
 			_log(SimEvent.Kind.ARRIVED, soldier.id, -1, soldier.cell)
 
 

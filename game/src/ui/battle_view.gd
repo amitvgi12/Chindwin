@@ -53,10 +53,18 @@ const COLOUR_METER_BACK: Color = Color(0.0, 0.0, 0.0, 0.6)
 const COLOUR_METER_RISING: Color = Color("e8d44d")
 const COLOUR_METER_PINNED: Color = Color("ff7a1a")
 const COLOUR_METER_BROKEN: Color = Color("ff2d2d")
+const COLOUR_DEBUG_THREAT: Color = Color(1.0, 0.25, 0.2, 0.55)
+const COLOUR_DEBUG_COVERED: Color = Color(0.8, 0.8, 0.8, 0.3)
+const COLOUR_DEBUG_CLEAR_SHOT: Color = Color(0.3, 1.0, 0.4, 0.6)
+const COLOUR_DEBUG_RANGE: Color = Color(1.0, 1.0, 1.0, 0.12)
+## How many of the enemy's latest decisions the debug overlay lists.
+const DEBUG_LOG_LINES: int = 6
 
 var sim: Simulation
 var paused: bool = true
 var selected_team: int = 1
+## Shows who can hit whom, suppression numbers and the enemy's decisions.
+var debug_overlay: bool = false
 
 var _scenario: Scenario
 ## What each player team was last told about firing. Kept here because an
@@ -69,6 +77,8 @@ var _tracers: Array[Tracer] = []
 
 @onready var _hud_text: Label = $Hud/Panel/Margin/Text
 @onready var _paused_banner: Label = $Hud/Banner
+@onready var _debug_text: Label = $Hud/Debug
+@onready var _help: ControlsCard = $Hud/Help
 
 
 func _ready() -> void:
@@ -101,6 +111,8 @@ func _draw() -> void:
 			_draw_soldier(soldier)
 	_draw_tracers()
 	_draw_rain()
+	if debug_overlay:
+		_draw_debug()
 
 
 ## Start the scenario again from the beginning, paused.
@@ -154,6 +166,12 @@ func handle_input(event: InputEvent) -> void:
 		select_team(2)
 	elif event.is_action_pressed(InputActions.TOGGLE_FIRE):
 		toggle_fire_for_selected_team()
+	elif event.is_action_pressed(InputActions.FALL_BACK):
+		order_selected_team_to_fall_back()
+	elif event.is_action_pressed(InputActions.HELP):
+		toggle_help()
+	elif event.is_action_pressed(InputActions.TOGGLE_OVERLAY):
+		debug_overlay = not debug_overlay
 	elif event.is_action_pressed(InputActions.RESTART):
 		restart()
 	elif event is InputEventMouseButton:
@@ -187,6 +205,27 @@ func select_team_at(cell: Vector2i) -> void:
 ## With `as_waypoint`, the team finishes its current route first.
 func order_selected_team_to(cell: Vector2i, as_waypoint: bool = false) -> bool:
 	return sim.order_move(selected_team, cell, as_waypoint)
+
+
+## Order the selected team back to where it started. Works while paused.
+func order_selected_team_to_fall_back() -> bool:
+	return sim.order_fall_back(selected_team)
+
+
+## Show or hide the "how to play" page. Showing it pauses the game.
+func toggle_help() -> void:
+	_help.visible = not _help.visible
+	if _help.visible:
+		paused = true
+
+
+func help_is_showing() -> bool:
+	return _help.visible
+
+
+## The text of the debug panel, or "" when the overlay is off.
+func debug_text() -> String:
+	return _debug_text.text if _debug_text.visible else ""
 
 
 ## Switch the selected team between holding fire and firing at will.
@@ -227,31 +266,14 @@ func banner_text() -> String:
 
 func _refresh_hud() -> void:
 	_refresh_banner()
+	_refresh_debug_text()
 	var state: String = tr("HUD_PAUSED") if paused else tr("HUD_RUNNING")
 	var status: String = tr("HUD_STATUS").format(
 		{"state": state, "time": _clock_text(), "team": selected_team}
 	)
 	var strengths: PackedStringArray = PackedStringArray()
 	for team_id: int in sim.team_ids(SimSoldier.BattleSide.PLAYER):
-		var fire_key: String = "HUD_FIRE_ON" if team_is_firing(team_id) else "HUD_FIRE_OFF"
-		(
-			strengths
-			. append(
-				(
-					tr("HUD_TEAM")
-					. format(
-						{
-							"team": team_id,
-							"fit": sim.living(SimSoldier.BattleSide.PLAYER, team_id).size(),
-							"total": sim.strength(SimSoldier.BattleSide.PLAYER, team_id),
-							"pinned": sim.pinned_count(SimSoldier.BattleSide.PLAYER, team_id),
-							"rounds": sim.team_rounds(SimSoldier.BattleSide.PLAYER, team_id),
-							"fire": tr(fire_key),
-						}
-					)
-				)
-			)
-		)
+		strengths.append(_team_line(team_id))
 	var enemy_fit: int = 0
 	var enemy_total: int = 0
 	var enemy_pinned: int = 0
@@ -301,6 +323,40 @@ func _refresh_banner() -> void:
 	else:
 		_paused_banner.text = tr("HUD_PAUSED_BANNER")
 		_paused_banner.visible = paused
+
+
+## One team's entry in the status strip.
+func _team_line(team_id: int) -> String:
+	var player: SimSoldier.BattleSide = SimSoldier.BattleSide.PLAYER
+	var fit: int = sim.living(player, team_id).size()
+	if fit == 0:
+		return tr("HUD_TEAM_GONE").format({"team": team_id})
+	var fire_key: String = "HUD_FIRE_ON" if team_is_firing(team_id) else "HUD_FIRE_OFF"
+	var values: Dictionary[String, Variant] = {
+		"team": team_id,
+		"fit": fit,
+		"total": sim.strength(player, team_id),
+		"pinned": sim.pinned_count(player, team_id),
+		"rounds": sim.team_rounds(player, team_id),
+		"fire": tr(fire_key),
+	}
+	return tr("HUD_TEAM").format(values)
+
+
+func _refresh_debug_text() -> void:
+	_debug_text.visible = debug_overlay
+	if not debug_overlay:
+		return
+	var lines: PackedStringArray = PackedStringArray()
+	lines.append(tr("DEBUG_TITLE").format({"seed": DEFAULT_SEED, "tick": sim.tick}))
+	lines.append(tr("DEBUG_LEGEND"))
+	lines.append(tr("DEBUG_LOG_HEADING"))
+	if sim.ai_log.is_empty():
+		lines.append(tr("DEBUG_LOG_EMPTY"))
+	# The enemy's own words. These are developer notes, so they are not translated.
+	for index: int in range(maxi(0, sim.ai_log.size() - DEBUG_LOG_LINES), sim.ai_log.size()):
+		lines.append(sim.ai_log[index])
+	_debug_text.text = "\n".join(lines)
 
 
 func _count_side(side: SimSoldier.BattleSide) -> int:
@@ -524,6 +580,49 @@ func _draw_rain() -> void:
 		start.x -= (start.y / fall.y) * 7.0
 		if start.y + fall.y < size.y:
 			draw_line(start, start + fall, COLOUR_RAIN, 1.0)
+
+
+## Debug overlay: the enemy's range, who he can hit, who is seen but covered,
+## which of your men has a clear shot, and each man's suppression and state.
+func _draw_debug() -> void:
+	for shooter: SimSoldier in sim.soldiers:
+		if not shooter.in_fight() or shooter.weapon == null:
+			continue
+		var from: Vector2 = _soldier_position(shooter)
+		var is_enemy: bool = shooter.side == SimSoldier.BattleSide.ENEMY
+		if is_enemy:
+			var reach: float = shooter.weapon.range_cells * CELL_PX
+			draw_arc(from, reach, 0.0, TAU, 64, COLOUR_DEBUG_RANGE, 1.0)
+		for target: SimSoldier in sim.soldiers:
+			if not target.in_fight() or target.side == shooter.side:
+				continue
+			var range_cells: int = shooter.weapon.range_cells
+			if shooter.cell.distance_squared_to(target.cell) > range_cells * range_cells:
+				continue
+			if not sim.grid.has_line_of_sight(shooter.cell, target.cell):
+				continue
+			var covered: bool = sim.grid.gives_cover(shooter.cell, target.cell)
+			var to: Vector2 = _soldier_position(target)
+			if is_enemy:
+				var colour: Color = COLOUR_DEBUG_COVERED if covered else COLOUR_DEBUG_THREAT
+				draw_line(from, to, colour, 1.0)
+			elif not covered:
+				draw_line(from, to, COLOUR_DEBUG_CLEAR_SHOT, 1.0)
+	for soldier: SimSoldier in sim.soldiers:
+		if soldier.in_fight():
+			_draw_debug_label(soldier)
+
+
+func _draw_debug_label(soldier: SimSoldier) -> void:
+	var label: String = str(soldier.suppression)
+	if soldier.falling_back:
+		label += " F"
+	elif soldier.broken:
+		label += " B"
+	elif sim.is_pinned(soldier):
+		label += " P"
+	var where: Vector2 = _soldier_position(soldier) + Vector2(14, -14)
+	draw_string(ThemeDB.fallback_font, where, label, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color.WHITE)
 
 
 func _diamond(centre: Vector2, radius: float, closed: bool = false) -> PackedVector2Array:
