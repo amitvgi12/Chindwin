@@ -15,7 +15,8 @@ extends Resource
 
 @export_group("Cover")
 ## Share of the normal hit chance that is left when the target is behind
-## cover, from 0 (cover is perfect) to 100 (cover does nothing).
+## cover, from 0 (fire across cover never hits, it only suppresses) to 100
+## (cover does nothing).
 @export var cover_hit_percent: int = 35
 
 @export_group("Suppression")
@@ -26,6 +27,11 @@ extends Resource
 @export var suppression_splash: int = 4
 ## Share of that pressure that still reaches a man behind cover, 0 to 100.
 @export var cover_suppression_percent: int = 60
+## Fire that has to cross a man's cover cannot push his suppression above
+## this. Keep it below broken_threshold: then fire from the front can pin a
+## man in cover but never break him, and only fire from a side his cover
+## does not protect can. 100 removes the limit.
+@export var cover_suppression_cap: int = 70
 ## A man loses one point of suppression every this many ticks.
 @export var suppression_decay_ticks: int = 2
 ## At this much suppression a man is pinned: he will not walk, and he fires

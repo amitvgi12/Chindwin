@@ -4,7 +4,7 @@ GAME  := game
 VENV  := .tools/venv
 GD_DIRS := game/src game/test game/dev
 
-.PHONY: help setup setup-templates import editor run test scripts-check assets-check lint format check screenshot export-windows clean
+.PHONY: help setup setup-templates import editor run test scripts-check assets-check lint format check gate1 screenshot export-windows clean
 
 help:
 	@echo "make setup            download the pinned Godot editor into .tools/"
@@ -15,6 +15,7 @@ help:
 	@echo "make lint             check GDScript style and formatting"
 	@echo "make format           rewrite GDScript files into the standard format"
 	@echo "make check            everything CI runs: asset ledger, lint, compile check, tests"
+	@echo "make gate1            play the two Gate 1 attacks ten times each and print the results"
 	@echo "make screenshot        open the game for a few seconds and save build/screenshot.png"
 	@echo "make export-windows   build build/windows/BeyondTheChindwin.exe"
 	@echo "make clean            delete build output and Godot's cache"
@@ -59,6 +60,9 @@ format: $(VENV)/bin/gdlint
 	$(VENV)/bin/gdformat $(GD_DIRS)
 
 check: assets-check lint scripts-check test
+
+gate1: import
+	$(GODOT) --headless --path $(GAME) -s res://dev/gate1_report.gd -- --runs=$(RUNS)
 
 screenshot: import
 	mkdir -p build

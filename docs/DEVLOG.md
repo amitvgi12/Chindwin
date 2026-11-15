@@ -2,6 +2,96 @@
 
 What was done, what was decided, and why. Newest session first.
 
+## 2026-11-15, session 1 continued: briefing, enemy behaviour, Gate 1 criterion 1
+
+### Reported by Amit
+
+- CI green on the waypoints and suppression commit.
+- He marked the check box in `docs/history/mission-01.md` "ok".
+
+### Done
+
+- **Opening briefing.** Eight sentences, each a row of the history file that Amit
+  checked. It names its single source and says the map is a test range.
+- **Broken men.** At very high suppression a man stops firing until the pressure has
+  fallen back below the pinned level.
+- **Enemy behaviour.** The picket gives up its position when it has lost half its men,
+  or when it is flanked and at least half of those left are pinned. A single broken
+  man goes back alone. Men who reach the fallback point leave the fight unhurt and are
+  counted apart from casualties. Every decision goes to `Simulation.ai_log`.
+- **Outcome banner.** Says how the fight ended and what it cost.
+- **Gate 1 criterion 1 as a test**, plus `make gate1` to print the battles behind it.
+- 141 tests pass. `make check` is clean.
+
+### What the first run of the Gate 1 check found
+
+With the first-guess numbers the game said the opposite of its own pillar:
+
+| Attack | Succeeded, first numbers |
+|---|---|
+| Frontal, stopping in front of the picket | 10 of 10 |
+| Pin, then flank | 5 of 10 |
+
+Ten rifles in the open broke four men behind a bank by volume of fire alone. Nothing
+before this check would have shown it; every unit test passed.
+
+### What was changed, and why
+
+| Change | Why |
+|---|---|
+| Fire that crosses a man's cover cannot push his suppression above 70 (broken is 85) | Fire from the front can now pin men in cover but never break them. Only fire from a side their cover does not protect can. This one rule is pillar 1. |
+| Fire across cover never hits (was 35% of normal) | Otherwise enough rifles in front eventually kill half the picket, which makes it fall back. Simple for the player: you cannot shoot men out from behind a bank from the front. |
+| Cover reaches two cells behind a bank, and a bank next to the shooter covers nobody | A whole team can now shelter behind one bank. Two men at arm's length across the same bank have no cover from each other. |
+| Rifle hit chance in the open 8% to 14% | "A unit under fire that is not in cover dies fast" was not true. |
+| Suppression per shot 12 to 20, to a neighbour 4 to 8, through cover 60% to 40% | Men walking in the open now go to ground under fire instead of arriving intact. |
+| Test range redrawn: open ground in front of the picket, jungle strips hiding a route round each flank | The old map let attackers reach the picket almost unseen, so a rush worked 9 times in 10. A picket would have a field of fire. |
+
+### Where it stands now
+
+Two hundred seeded battles per plan (`make gate1 RUNS=200`):
+
+| Attack | Succeeded | Attackers still fit, of 10 |
+|---|---|---|
+| Frontal, stopping in front | 0 of 200 | 0.0 |
+| Frontal rush to the picket's bank | 6 of 200 | 0.3 |
+| Pin, then flank | 191 of 200 | 8.8 |
+| Flank with team 1 holding fire | 177 of 200 | 7.3 |
+
+Success means the picket has nobody left in the fight within two minutes and at least
+six of the ten attackers are fit. The criterion asks for frontal to fail at least 8 in
+10 and pin-then-flank to succeed at least 7 in 10. Both frontal versions are tested.
+
+### What this does not show
+
+- **Covering fire matters less than the flank.** Holding fire and flanking anyway
+  still works 88% of the time. Pinning first raises that to 95% and saves about one
+  and a half men. The game currently says "go round" louder than "pin first".
+- **A frontal attack is annihilated, not merely beaten.** Pinned men in the open stay
+  there until they are shot. That may read as unfair rather than instructive.
+- These are scripted plans on one map. A person will find other plans.
+- Criterion 1 is about the rules. Criteria 2 to 5 are about whether it is fun, and
+  only Amit playing can answer them.
+
+### Verified
+
+- Rules by unit tests. The briefing and the new map by screenshot.
+- CI on Linux, on the previous commit.
+
+### Not verified
+
+- Feel in motion, and whether the briefing reads well on Amit's screen.
+- The Windows export job in CI, and the Windows build itself.
+
+### Decisions and why
+
+| Decision | Why |
+|---|---|
+| Rows 1 and 2 of the briefing reworded after Amit's check | Rows 6 and 7 use the source's late-June figures, so the date became late June and the airfield attack "early May". Recorded in the history file. No claim was added. |
+| The briefing shows a source line and "this map is a test range" | The game makes a historical claim on its first screen. It should say what the claim rests on and what is not real. |
+| Withdrawn men are counted apart from casualties | Driving the enemy off and killing him are different outcomes, and the debrief should say which happened. |
+| The picket does not turn to face a flank | It would need cover on more than one side and a place to move to. Holding or leaving is enough to make the flank matter. Listed as a rough edge. |
+| The Gate 1 test also covers the frontal rush | The rush is the strongest frontal attack. A criterion that only tested a weak one would be a strawman. |
+
 ## 2026-11-15, session 1 continued: waypoints and suppression
 
 ### Reported by Amit

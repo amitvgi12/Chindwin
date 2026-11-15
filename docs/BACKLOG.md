@@ -10,19 +10,17 @@ L is a week or more of sessions.
 | # | Task | Size |
 |---|---|---|
 | 1 | `git push` and confirm CI stays green. | S |
-| 2 | Play pin-and-flank with suppression (steps in the latest devlog entry). Say whether pinning the picket before moving feels like the point of the game. | S |
-| 3 | Read pp. 48-49 of the Sundaram article and tick the box in `docs/history/mission-01.md`. That unlocks the briefing screen. | S |
-| 4 | Find a library or loan copy of Shah Nawaz Khan's memoir or Fay's *The Forgotten Army*. | M |
+| 2 | **Play for thirty minutes against Gate 1 criteria 2 to 5** in `docs/SCOPE.md`: do you restart unprompted, can you explain each loss, are orders quick, do you want another go? Say what happened for each. | M |
+| 3 | Find a library or loan copy of Shah Nawaz Khan's memoir or Fay's *The Forgotten Army*. | M |
 
 ## Phase 1: remaining
 
 | # | Task | Size |
 |---|---|---|
-| 1 | Enemy picket behaviour that reacts to suppression, with logged decisions: turn to face a flank, fall back when broken. Adds the broken state. | L |
-| 2 | Scenario runner for Gate 1 criterion 1: ten seeded runs, frontal against flank. Then tune the numbers until it passes. | M |
-| 3 | Debug overlay: sight lines, suppression values, AI state. | M |
-| 4 | Briefing screen from `docs/history/mission-01.md`, once Amit has checked it. | S |
-| 5 | Gate 1 playtest script and a one-screen controls card. | S |
+| 1 | Act on what Amit reports from playing. Likely first: a frontal attack is wiped out to the last man, which may be too absolute; and covering fire adds less than the flank itself does. | M |
+| 2 | Debug overlay: sight lines, who can see whom, the enemy's log on screen. | M |
+| 3 | A one-screen controls card, reachable from the briefing. | S |
+| 4 | Gate 1 playtest script. | S |
 
 Known rough edges, to fix as the systems above arrive:
 
@@ -30,8 +28,8 @@ Known rough edges, to fix as the systems above arrive:
 - A team with nobody left still reads "firing" in the status strip.
 - Rain is decoration. It affects nothing until Phase 2.
 - The track is decoration. Walking on it is no faster.
-- The test range offers no covered route to the north flank; a team crossing there is
-  seen unless the picket is already pinned.
+- Pinned men in the open never crawl back to cover; they stay until shot.
+- The picket never moves to face a flank. It holds or it leaves.
 
 ## Phase 1: done
 
@@ -46,6 +44,9 @@ Known rough edges, to fix as the systems above arrive:
 | Trial "map in the rain" look, drawn in code. Paused banner. | 15 Nov 2026 |
 | Waypoints (Shift + right-click) and the planned route drawn on the map. | 15 Nov 2026 |
 | Suppression, the pinned state, a meter over each man, fire spread across targets. | 15 Nov 2026 |
+| Opening briefing from the checked history rows. | 15 Nov 2026 |
+| Broken state, withdrawal, and enemy picket behaviour with a decision log. | 15 Nov 2026 |
+| Gate 1 criterion 1 as an automated test, and the numbers tuned to meet it. | 15 Nov 2026 |
 
 ## History: runs alongside, blocked on sources
 

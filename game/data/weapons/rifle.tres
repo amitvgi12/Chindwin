@@ -7,4 +7,4 @@ script = ExtResource("1")
 name_key = "WEAPON_RIFLE"
 range_cells = 14
 fire_interval_ticks = 12
-hit_chance_percent = 8
+hit_chance_percent = 14

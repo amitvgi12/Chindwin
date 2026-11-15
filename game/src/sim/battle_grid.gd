@@ -20,6 +20,9 @@ const NEIGHBOURS: Array[Vector2i] = [
 	Vector2i(1, -1),
 ]
 
+## How many cells behind a bank a man can stand and still be covered by it.
+const COVER_DEPTH: int = 2
+
 var width: int
 var height: int
 
@@ -116,15 +119,24 @@ func has_line_of_sight(from: Vector2i, to: Vector2i) -> bool:
 	return true
 
 
-## True when a man at `target` is behind cover from a shot fired at `shooter`:
-## the last cell the shot crosses before reaching him is low cover.
-## Cover therefore only protects against fire that comes over it. A shot from
-## the side or from behind does not cross it, which is what makes flanking pay.
+## True when a man at `target` is behind cover from a shot fired at `shooter`.
+##
+## He is covered when the shot crosses low cover within COVER_DEPTH cells of
+## him, unless that cover is right next to the shooter: a man standing at a
+## bank fires over it freely, and two men either side of the same bank at
+## arm's length have no cover from each other.
+##
+## So cover only protects against fire that comes over it from a distance.
+## A shot from the side or from behind does not cross it, which is what makes
+## going round the flank pay.
 func gives_cover(shooter: Vector2i, target: Vector2i) -> bool:
 	var cells: Array[Vector2i] = line_cells(shooter, target)
-	if cells.size() < 3:
-		return false
-	return is_low_cover(cells[cells.size() - 2])
+	var last: int = cells.size() - 1
+	for back: int in range(1, COVER_DEPTH + 1):
+		var index: int = last - back
+		if index >= 2 and is_low_cover(cells[index]):
+			return true
+	return false
 
 
 ## Up to `count` free cells as close as possible to `target`, nearest first.

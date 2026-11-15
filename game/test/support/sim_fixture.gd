@@ -15,6 +15,7 @@ static func rules() -> SimRules:
 	result.move_ticks_orthogonal = 5
 	result.move_ticks_diagonal = 7
 	result.cover_hit_percent = 50
+	result.cover_suppression_cap = 100
 	# Suppression is off unless a test turns it on, so that other rules can
 	# be tested one at a time.
 	result.suppression_per_shot = 0

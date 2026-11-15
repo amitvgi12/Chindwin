@@ -10,7 +10,7 @@ extends SceneTree
 
 const DEFAULT_SCENE: String = "res://scenes/test_range.tscn"
 ## For the test range: game time to play before the picture, in ticks.
-const TICKS_BEFORE_PICTURE: int = 215
+const TICKS_BEFORE_PICTURE: int = 200
 ## For any other scene: frames to wait so it has drawn.
 const FRAMES_BEFORE_PICTURE: int = 30
 ## Give up after this many frames so the tool can never hang.
@@ -50,11 +50,13 @@ func _process(_delta: float) -> bool:
 	return true
 
 
-## Team 1 goes to the bank facing the picket; team 2 flanks round the north.
+## Team 1 goes to the bank facing the picket; team 2 goes round the north
+## behind the jungle.
 func _start_scripted_battle(view: BattleView) -> void:
 	view.select_team(1)
 	view.order_selected_team_to(Vector2i(22, 9))
 	view.select_team(2)
-	view.order_selected_team_to(Vector2i(29, 2))
-	view.order_selected_team_to(Vector2i(34, 4), true)
+	view.order_selected_team_to(Vector2i(20, 1))
+	view.order_selected_team_to(Vector2i(33, 1), true)
+	view.order_selected_team_to(Vector2i(35, 4), true)
 	view.toggle_pause()

@@ -149,9 +149,17 @@ func test_a_man_behind_a_bank_is_not_covered_from_the_side_or_rear() -> void:
 	assert_false(grid.gives_cover(Vector2i(6, 2), Vector2i(4, 2)), "from behind")
 
 
-func test_a_bank_does_not_cover_a_man_standing_away_from_it() -> void:
+func test_a_bank_covers_a_man_up_to_two_cells_behind_it_and_no_further() -> void:
 	var grid: BattleGrid = _grid_with_bank()
-	assert_false(grid.gives_cover(Vector2i(0, 2), Vector2i(6, 2)), "two cells back: no cover")
+	assert_true(grid.gives_cover(Vector2i(0, 2), Vector2i(5, 2)), "two cells behind: covered")
+	assert_false(grid.gives_cover(Vector2i(0, 2), Vector2i(6, 2)), "three cells behind: not")
+
+
+func test_a_bank_next_to_the_shooter_gives_the_target_no_cover() -> void:
+	var grid: BattleGrid = _grid_with_bank()
+	assert_false(grid.gives_cover(Vector2i(2, 2), Vector2i(4, 2)), "arm's length across the bank")
+	assert_false(grid.gives_cover(Vector2i(2, 2), Vector2i(5, 2)), "shooter is at the bank")
+	assert_true(grid.gives_cover(Vector2i(1, 2), Vector2i(4, 2)), "one cell back: it covers again")
 
 
 func test_the_man_shooting_over_a_bank_gets_no_cover_from_it_at_long_range() -> void:

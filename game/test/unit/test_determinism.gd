@@ -14,11 +14,11 @@ const RULES: String = "res://data/rules/prototype_rules.tres"
 ## run the tests, copy the new value from the failure message, and say why
 ## in the commit.
 const GOLDEN_SNAPSHOT: String = (
-	"tick=461 0:22,9,0,0,15,0,0,0 1:22,10,1,0,8,0,0,0 2:21,9,1,0,11,0,0,0 "
-	+ "3:22,8,1,0,8,0,0,0 4:21,10,1,0,9,0,0,0 5:34,4,1,0,18,0,0,0 "
-	+ "6:35,4,1,0,18,0,0,0 7:34,5,1,0,19,0,0,0 8:23,3,0,0,20,0,0,0 "
-	+ "9:34,3,1,0,18,0,0,0 10:38,9,1,0,27,0,0,1 11:39,9,1,0,27,0,0,1 "
-	+ "12:38,10,1,0,27,0,0,1 13:37,9,1,0,27,0,0,1"
+	"tick=601 0:22,9,1,0,0,49,0,0 1:20,11,0,0,20,0,0,0 2:21,9,1,0,0,49,0,0 "
+	+ "3:22,8,1,0,0,49,0,0 4:20,11,0,0,20,0,0,0 5:31,1,0,0,20,0,0,0 "
+	+ "6:32,1,0,0,20,0,0,0 7:33,2,1,3,19,53,1,0 8:31,1,0,0,20,0,0,0 "
+	+ "9:33,1,0,0,20,0,0,0 10:34,8,1,0,0,0,0,0 11:34,9,1,0,0,0,0,0 "
+	+ "12:34,10,1,0,0,0,0,0 13:34,11,1,0,0,0,0,0"
 )
 
 
@@ -29,12 +29,13 @@ func _scripted_battle(seed_value: int) -> Simulation:
 	var weapons: Dictionary[String, WeaponDef] = WeaponLibrary.load_for(scenario)
 	var sim: Simulation = Simulation.new(rules, scenario, weapons, seed_value)
 	sim.order_move(1, Vector2i(22, 9))
-	for count: int in 60:
+	for count: int in 200:
 		sim.step()
-	# Round the north in two legs, so the route stays out of the picket's sight.
-	sim.order_move(2, Vector2i(29, 2))
+	# Round the north behind the jungle, then in from the side.
+	sim.order_move(2, Vector2i(20, 1))
 	sim.step()
-	sim.order_move(2, Vector2i(34, 4), true)
+	sim.order_move(2, Vector2i(33, 1), true)
+	sim.order_move(2, Vector2i(35, 4), true)
 	for count: int in 400:
 		sim.step()
 	return sim

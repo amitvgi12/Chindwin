@@ -378,7 +378,8 @@ func _make_casualty(soldier: SimSoldier) -> void:
 
 
 ## A shot, hit or miss, puts pressure on the man shot at and a little on each
-## comrade standing next to him. Cover in front of a man reduces it.
+## comrade standing next to him. Cover in front of a man reduces it and
+## limits how high it can go.
 func _suppress_around(shot: Shot) -> void:
 	if rules.suppression_per_shot <= 0:
 		return
@@ -392,9 +393,12 @@ func _suppress_around(shot: Shot) -> void:
 			amount = rules.suppression_splash
 		if amount == 0:
 			continue
+		var limit: int = 100
 		if grid.gives_cover(shot.shooter.cell, soldier.cell):
 			amount = amount * rules.cover_suppression_percent / 100
-		soldier.suppression = mini(100, soldier.suppression + amount)
+			limit = rules.cover_suppression_cap
+		# Never lowers pressure that fire from another direction already put on him.
+		soldier.suppression = maxi(soldier.suppression, mini(limit, soldier.suppression + amount))
 
 
 func _are_neighbours(a: Vector2i, b: Vector2i) -> bool:
