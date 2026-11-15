@@ -110,10 +110,15 @@ These came from memory during this session. None may be used.
 
 ## 6. What this suggests for mission 1 (Claude's inference, not a decision)
 
-In S1, the one place and period where all four design pillars are attested together is
-the Gandhi Brigade around Mitlong Khunou from mid-May to late June 1944: small raids on
-patrols and road-blocks, ammunition running out, the monsoon, sickness, Indian troops
-opposite who did not come over, and desertion from the brigade itself (S1 pp. 48-49).
+In S1, the setting where the design pillars line up best is the Gandhi Brigade around
+Mitlong Khunou from mid-May to late June 1944 (S1 pp. 48-49).
+
+- Documented there: small raids on patrols and road-blocks, acute shortages, sickness,
+  Indian troops opposite who did not come over, and desertion from the brigade itself.
+- True by date only: the monsoon. S1 does not describe the weather at Mitlong Khunou.
+- Documented nowhere found so far: how a section actually fought, which is what
+  Pillar 1 (suppress, then move) is about. See open questions 1 and 2.
+
 S1 documents the pattern, not any single raid, so a mission there would be tagged
 COMPOSITE. This rests on one source and needs corroboration before it is adopted.
 
