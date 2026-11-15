@@ -8,7 +8,7 @@ func test_the_shipped_test_range_loads_cleanly() -> void:
 	var scenario: Scenario = Scenario.load_file(TEST_RANGE)
 	assert_eq(scenario.errors, [] as Array[String])
 	assert_eq(scenario.width, 40)
-	assert_eq(scenario.height, 22)
+	assert_eq(scenario.height, 20)
 	assert_gt(scenario.blocked.size(), 0)
 
 

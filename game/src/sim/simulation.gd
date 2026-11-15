@@ -71,6 +71,16 @@ func living(side: SimSoldier.BattleSide, team_id: int) -> Array[SimSoldier]:
 	return found
 
 
+## The team numbers one side has, lowest first, whether or not anyone is left.
+func team_ids(side: SimSoldier.BattleSide) -> Array[int]:
+	var ids: Array[int] = []
+	for soldier: SimSoldier in soldiers:
+		if soldier.side == side and not ids.has(soldier.team_id):
+			ids.append(soldier.team_id)
+	ids.sort()
+	return ids
+
+
 ## How many soldiers a team started with.
 func strength(side: SimSoldier.BattleSide, team_id: int) -> int:
 	var count: int = 0

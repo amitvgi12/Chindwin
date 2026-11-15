@@ -1,5 +1,10 @@
 keys,en
 GAME_TITLE,Beyond the Chindwin
 GAME_SUBTITLE,The Forgotten Front
-BOOT_NOTE,Phase 0 build. There is no game yet.
 SCENARIO_TEST_RANGE,Test range
+HUD_PAUSED,PAUSED
+HUD_RUNNING,RUNNING
+HUD_STATUS,"{state}   Time {time}   Selected: Team {team}"
+HUD_TEAM,"Team {team}: {fit} of {total} fit"
+HUD_ENEMY,"Enemy picket: {fit} of {total}"
+HUD_CONTROLS,"Space: pause or resume   1, 2: select team   Right-click: move   R: restart"

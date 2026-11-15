@@ -1,32 +1,32 @@
 {
   "name_key": "SCENARIO_TEST_RANGE",
   "width": 40,
-  "height": 22,
+  "height": 20,
   "blocked_rects": [
-    [10, 3, 2, 5],
-    [10, 14, 2, 5],
-    [17, 9, 2, 4],
-    [22, 2, 6, 2],
-    [22, 18, 6, 2],
-    [26, 7, 2, 3],
-    [26, 12, 2, 3],
-    [31, 4, 1, 3],
-    [31, 15, 1, 3]
+    [10, 2, 2, 5],
+    [10, 13, 2, 5],
+    [17, 8, 2, 4],
+    [22, 1, 6, 2],
+    [22, 17, 6, 2],
+    [26, 6, 2, 3],
+    [26, 11, 2, 3],
+    [31, 3, 1, 3],
+    [31, 14, 1, 3]
   ],
   "soldiers": [
+    {"side": "player", "team": 1, "cell": [3, 8]},
     {"side": "player", "team": 1, "cell": [3, 9]},
     {"side": "player", "team": 1, "cell": [3, 10]},
-    {"side": "player", "team": 1, "cell": [3, 11]},
+    {"side": "player", "team": 1, "cell": [4, 9]},
     {"side": "player", "team": 1, "cell": [4, 10]},
-    {"side": "player", "team": 1, "cell": [4, 11]},
+    {"side": "player", "team": 2, "cell": [3, 13]},
     {"side": "player", "team": 2, "cell": [3, 14]},
     {"side": "player", "team": 2, "cell": [3, 15]},
-    {"side": "player", "team": 2, "cell": [3, 16]},
+    {"side": "player", "team": 2, "cell": [4, 14]},
     {"side": "player", "team": 2, "cell": [4, 15]},
-    {"side": "player", "team": 2, "cell": [4, 16]},
-    {"side": "enemy", "team": 1, "cell": [34, 9]},
-    {"side": "enemy", "team": 1, "cell": [34, 11]},
-    {"side": "enemy", "team": 1, "cell": [35, 10]},
-    {"side": "enemy", "team": 1, "cell": [35, 12]}
+    {"side": "enemy", "team": 1, "cell": [34, 8]},
+    {"side": "enemy", "team": 1, "cell": [34, 10]},
+    {"side": "enemy", "team": 1, "cell": [35, 9]},
+    {"side": "enemy", "team": 1, "cell": [35, 11]}
   ]
 }

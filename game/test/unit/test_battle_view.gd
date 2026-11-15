@@ -1,0 +1,142 @@
+extends GutTest
+## The view: pause, selection, orders from input, and what the corner panel says.
+## Rules themselves are tested in test_simulation.gd.
+
+const SCENE: String = "res://scenes/test_range.tscn"
+
+var view: BattleView
+
+
+func before_each() -> void:
+	TranslationServer.set_locale("en")
+	var packed: PackedScene = load(SCENE) as PackedScene
+	view = packed.instantiate() as BattleView
+	add_child_autofree(view)
+
+
+func _key(key: Key) -> InputEventKey:
+	var event: InputEventKey = InputEventKey.new()
+	event.physical_keycode = key
+	event.pressed = true
+	return event
+
+
+func _click(button: MouseButton, cell: Vector2i) -> InputEventMouseButton:
+	var event: InputEventMouseButton = InputEventMouseButton.new()
+	event.button_index = button
+	event.pressed = true
+	event.position = view.cell_centre(cell)
+	return event
+
+
+func _first_of_team(team_id: int) -> SimSoldier:
+	return view.sim.living(SimSoldier.BattleSide.PLAYER, team_id)[0]
+
+
+func test_the_game_starts_paused_at_time_zero_with_team_one_selected() -> void:
+	assert_true(view.paused)
+	assert_eq(view.sim.tick, 0)
+	assert_eq(view.selected_team, 1)
+
+
+func test_time_does_not_pass_while_paused() -> void:
+	view.advance(5.0)
+	assert_eq(view.sim.tick, 0)
+
+
+func test_one_tenth_of_a_second_is_one_tick() -> void:
+	view.toggle_pause()
+	view.advance(0.1)
+	assert_eq(view.sim.tick, 1)
+	view.advance(0.3)
+	assert_eq(view.sim.tick, 4)
+
+
+func test_a_very_slow_frame_runs_a_limited_number_of_ticks() -> void:
+	view.toggle_pause()
+	view.advance(60.0)
+	assert_eq(view.sim.tick, BattleView.MAX_STEPS_PER_FRAME)
+	view.advance(0.1)
+	assert_eq(view.sim.tick, BattleView.MAX_STEPS_PER_FRAME + 1, "the backlog was dropped")
+
+
+func test_a_cell_and_its_centre_point_convert_both_ways() -> void:
+	for cell: Vector2i in [Vector2i(0, 0), Vector2i(7, 3), Vector2i(39, 19)] as Array[Vector2i]:
+		assert_eq(view.cell_at(view.cell_centre(cell)), cell)
+	assert_eq(view.cell_at(Vector2(31.9, 0.0)), Vector2i(0, 0))
+	assert_eq(view.cell_at(Vector2(32.0, 0.0)), Vector2i(1, 0))
+
+
+func test_space_pauses_and_resumes() -> void:
+	view.handle_input(_key(KEY_SPACE))
+	assert_false(view.paused)
+	view.handle_input(_key(KEY_SPACE))
+	assert_true(view.paused)
+
+
+func test_number_keys_select_a_team() -> void:
+	view.handle_input(_key(KEY_2))
+	assert_eq(view.selected_team, 2)
+	view.handle_input(_key(KEY_1))
+	assert_eq(view.selected_team, 1)
+
+
+func test_selecting_a_team_that_does_not_exist_changes_nothing() -> void:
+	view.select_team(9)
+	assert_eq(view.selected_team, 1)
+
+
+func test_left_click_on_a_soldier_selects_his_team() -> void:
+	view.handle_input(_click(MOUSE_BUTTON_LEFT, _first_of_team(2).cell))
+	assert_eq(view.selected_team, 2)
+
+
+func test_left_click_on_an_enemy_or_empty_ground_keeps_the_selection() -> void:
+	var enemy: SimSoldier = view.sim.living(SimSoldier.BattleSide.ENEMY, 1)[0]
+	view.handle_input(_click(MOUSE_BUTTON_LEFT, enemy.cell))
+	assert_eq(view.selected_team, 1)
+	view.handle_input(_click(MOUSE_BUTTON_LEFT, Vector2i(0, 0)))
+	assert_eq(view.selected_team, 1)
+
+
+func test_right_click_orders_only_the_selected_team_and_works_while_paused() -> void:
+	view.handle_input(_key(KEY_2))
+	view.handle_input(_click(MOUSE_BUTTON_RIGHT, Vector2i(8, 14)))
+	assert_true(view.paused, "ordering does not unpause")
+	view.toggle_pause()
+	view.advance(0.1)
+	assert_true(_first_of_team(2).is_moving(), "team 2 is on its way")
+	assert_false(_first_of_team(1).is_moving(), "team 1 was not ordered")
+
+
+func test_right_click_on_a_blocked_cell_orders_nobody() -> void:
+	view.handle_input(_click(MOUSE_BUTTON_RIGHT, view.sim.grid.blocked_cells()[0]))
+	view.toggle_pause()
+	view.advance(0.1)
+	assert_false(_first_of_team(1).is_moving())
+
+
+func test_restart_puts_everything_back() -> void:
+	view.handle_input(_key(KEY_2))
+	view.order_selected_team_to(Vector2i(8, 14))
+	view.toggle_pause()
+	view.advance(0.3)
+	view.handle_input(_key(KEY_R))
+	assert_true(view.paused)
+	assert_eq(view.sim.tick, 0)
+	assert_eq(view.selected_team, 1)
+	assert_false(_first_of_team(2).is_moving())
+
+
+func test_the_corner_panel_reports_state_and_strengths() -> void:
+	var text: String = view.hud_text()
+	assert_string_contains(text, "Test range")
+	assert_string_contains(text, "PAUSED")
+	assert_string_contains(text, "Team 1: 5 of 5 fit")
+	assert_string_contains(text, "Team 2: 5 of 5 fit")
+	assert_string_contains(text, "Enemy picket: 4 of 4")
+
+
+func test_no_text_key_is_shown_raw_in_the_corner_panel() -> void:
+	assert_false(view.hud_text().contains("HUD_"), "every HUD_ key needs an English string")
+	assert_false(view.hud_text().contains("{"), "every placeholder was filled in")

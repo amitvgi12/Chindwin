@@ -2,6 +2,81 @@
 
 What was done, what was decided, and why. Newest session first.
 
+## 2026-11-15, session 1 continued: Gate 0 and the first Phase 1 step
+
+### Decided by Amit
+
+- **Gate 0 approved.**
+- The earlier vertical-slice notes are background. The current build is a demo. The
+  game may move towards the 3D vision later if the demo and investors support it;
+  that will be a separate written decision.
+
+### Done
+
+- **Simulation core** in `game/src/sim/`: grid with blocked cells, pathfinding and line
+  of sight; scenario loaded from JSON with plain-language errors; queued move orders;
+  walking at a tick cost per cell; a placeholder enemy that fires at the nearest man it
+  can see within range.
+- **Test range** as data: `game/data/scenarios/test_range.json` and
+  `game/data/rules/prototype_rules.tres`.
+- **Thin playable loop** in `game/src/ui/battle_view.gd`: two teams, selection, move
+  orders, pause, restart, a status strip.
+- **`make screenshot`**: plays a scripted battle in a window and saves a picture, so
+  Claude can look at the game.
+- 63 tests pass. `make check` is clean.
+
+### How to see it
+
+Run `make run`. The game starts paused.
+
+1. Press `2`, then right-click open ground near the middle of the map. Small hollow
+   squares show where each man of team 2 will stand.
+2. Press Space. Team 2 walks there, going round the grey blocks.
+3. Send a team to within sight of the red diamonds on the right. Yellow lines are
+   shots that missed, red lines are hits, and a man who is hit becomes a grey crossed
+   circle. The strip at the bottom counts who is still fit.
+4. Keep a grey block between a team and the diamonds and nobody fires at it.
+5. Press Space to pause, give new orders while paused, press `R` to start again.
+
+**What "right" looks like:** men never walk through grey blocks; nobody is shot through
+a block; the enemy only fires at men within about fourteen cells; orders given while
+paused take effect when the game resumes.
+
+**What is deliberately missing:** your men cannot shoot. There is no cover, no
+suppression and no way to win. Those are the next backlog items.
+
+### Verified
+
+- All rules above by unit tests, including the fire interval and line of sight.
+- The picture, by screenshot: map, both teams with numbers, the ring on the selected
+  team, casualties, enemy diamonds and the status strip all draw correctly.
+
+### Not verified
+
+- **Mouse and keyboard through a real window.** Tests feed input events directly to
+  the view. Nobody has clicked in the actual game yet.
+- How movement and shots look in motion. A screenshot is one frame.
+- Everything listed as not verified in the Phase 0 entry below still stands.
+
+### Decisions and why
+
+| Decision | Why |
+|---|---|
+| Ten ticks a second | Fine enough for walking and firing to read smoothly, coarse enough to reason about in tests. Lives in the rules file. |
+| Whole-number arithmetic throughout the simulation | Distances are compared squared, chances are rolled from 1 to 100, costs are ticks. Avoids differences between macOS and Linux. |
+| Orders are queued and applied at the start of the next tick | Orders given while paused are safe, and a replay only needs the seed and the list of orders with their ticks. |
+| Rules in a typed resource file, scenarios in JSON | Rules are a flat list of numbers that the Godot inspector edits well. A map is nested lists, which JSON holds more readably and which can be validated with clear error messages. |
+| The view polls the simulation every frame | Simpler than signals, and the simulation stays free of anything a view could subscribe to. |
+| Status strip under the map, map cut to 20 rows | The first layout put a panel over the top-left of the map and hid a block. Found by looking at the screenshot. |
+| Enum named `BattleSide` | Godot has a built-in global enum `Side`. A script enum of the same name fails to compile with a misleading error. |
+
+### Mistakes caught this session
+
+- The fire interval was off by one tick. A test written from the rule's description
+  caught it.
+- The screenshot tool first waited a number of frames, which ran much faster than real
+  time. It now waits for game time.
+
 ## 2026-11-15, session 1: Phase 0
 
 ### Done

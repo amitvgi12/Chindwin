@@ -9,9 +9,13 @@ what was decided since. Where they differ, this file wins.
 
 ## Current state
 
-- **Phase 0 (Foundations) is built. Waiting at Gate 0** for Amit to approve
-  `docs/GDD.md` and `docs/SCOPE.md`.
-- No gameplay code exists yet. Do not write any before Gate 0 is approved.
+- **Gate 0 passed on 15 November 2026. Phase 1 (grey-box combat) is under way.**
+- Built so far: the simulation core, a test-range map, and a thin playable loop in
+  which two teams can be selected and moved while an enemy picket fires at them.
+  The player's men cannot shoot yet.
+- **Purpose: this build is a demo.** Amit may later take the game towards his earlier
+  3D vision if the demo and investors support it. That is a decision for after the
+  demo, made in writing. Until then every hard constraint below stands.
 - Read `docs/BACKLOG.md` for what is next and `docs/DEVLOG.md` for why things are as
   they are.
 
@@ -94,6 +98,7 @@ Run from the repository root. `make` lists them.
 | `make test` | Runs the unit tests headless. |
 | `make check` | Everything CI runs: asset ledger, lint, compile check, tests. Run before every commit. |
 | `make format` | Rewrites GDScript files into the standard format. |
+| `make screenshot` | Opens the game for a few seconds, plays a scripted battle and saves `build/screenshot.png`. Lets Claude look at the game. A window appears briefly. |
 | `make setup-templates` | Downloads the Windows export templates (1.3 GB, once). |
 | `make export-windows` | Builds `build/windows/BeyondTheChindwin.exe`. |
 
@@ -150,6 +155,11 @@ tools/           toolchain and check scripts
 - **The game's name lives in six places:** `project.godot`, `export_presets.cfg`,
   `tools/export_windows.sh`, `Makefile`, `.github/workflows/ci.yml` and
   `game/locale/strings.csv`.
+- **Godot has built-in global enums** such as `Side`, `Error`, `Key` and `Corner`. A
+  script enum with the same name is silently shadowed and fails to compile with a
+  confusing type error. That is why the soldier enum is `BattleSide`.
+- **Frame time belongs to the view only.** `BattleView.advance()` converts seconds to
+  ticks. Nothing in `src/sim/` ever sees a delta.
 - **Export templates are installed outside the repository,** in Godot's own folder
   under `~/Library/Application Support/Godot/export_templates/`.
 

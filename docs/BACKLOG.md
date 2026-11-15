@@ -3,31 +3,42 @@
 Ordered. Do the top item first. Sizes: S is under two hours, M is a session or two,
 L is a week or more of sessions.
 
+**Gate 1 target: 10 January 2027. Hard review: 7 February 2027.**
+
 ## Now: needs Amit
 
 | # | Task | Size |
 |---|---|---|
-| 1 | **Gate 0.** Read `docs/GDD.md` and `docs/SCOPE.md`. Approve or ask for changes. | S |
-| 2 | Say whether the earlier vertical-slice notes were background or a change of direction. | S |
-| 3 | Create a private GitHub repository, push, and tell Claude whether the first CI run is green. | S |
-| 4 | Run `make run` once and confirm a window opens showing the title. | S |
-| 5 | Find a library or loan copy of Shah Nawaz Khan's memoir or Fay's *The Forgotten Army*. | M |
+| 1 | Run `make run` and play the test range for five minutes. Report anything that looks or feels wrong. What to look for is in the latest devlog entry. | S |
+| 2 | Create a private GitHub repository, push, and tell Claude whether the first CI run is green. The repository still exists on one laptop only. | S |
+| 3 | Find a library or loan copy of Shah Nawaz Khan's memoir or Fay's *The Forgotten Army*. | M |
 
-## Phase 1: starts only after Gate 0
+## Phase 1: remaining
 
 | # | Task | Size |
 |---|---|---|
-| 1 | Simulation skeleton: fixed tick, seeded random numbers, state as plain data, order queue. Include a golden-value test for macOS and Linux agreement. | M |
-| 2 | Grid map, movement and pathfinding, with tests. | M |
-| 3 | Thin playable loop: draw units, select a team, order a move, pause, one enemy that fires back. | M |
-| 4 | Line of sight on the grid. | S |
-| 5 | Cover. | S |
-| 6 | Firing, hit resolution, ammunition count. Weapons as data. | M |
-| 7 | Suppression and will-to-fight states. | M |
-| 8 | Enemy picket behaviour that reacts to suppression, with logged decisions. | L |
-| 9 | Debug overlay: sight lines, suppression values, AI state. | M |
-| 10 | Scenario runner for Gate 1 criterion 1: ten seeded runs, frontal against flank. | S |
-| 11 | Gate 1 playtest script and a one-screen controls card. | S |
+| 1 | Cover: a terrain type that protects without blocking sight. | S |
+| 2 | Firing by the player's teams, hit resolution, ammunition count. Weapons as data. | M |
+| 3 | Suppression and will-to-fight states. Visible meter. | M |
+| 4 | Enemy picket behaviour that reacts to suppression, with logged decisions. Replaces the placeholder enemy fire. | L |
+| 5 | Debug overlay: sight lines, suppression values, AI state. | M |
+| 6 | Scenario runner for Gate 1 criterion 1: ten seeded runs, frontal against flank. | S |
+| 7 | Gate 1 playtest script and a one-screen controls card. | S |
+
+Known rough edges in the thin loop, to fix as the systems above arrive:
+
+- Soldiers walk through each other on the way; they only end on separate cells.
+- A shot is drawn for a quarter of a second, which is easy to miss.
+- Nothing marks the game as paused except the word in the status strip.
+
+## Phase 1: done
+
+| Task | Finished |
+|---|---|
+| Simulation skeleton: fixed tick, seeded random numbers, plain-data state, queued orders, recorded-battle test. | 15 Nov 2026 |
+| Grid map, movement and pathfinding. Scenario loaded from JSON. | 15 Nov 2026 |
+| Line of sight on the grid. | 15 Nov 2026 |
+| Thin playable loop: draw units, select a team, order a move, pause, an enemy that fires back. | 15 Nov 2026 |
 
 ## History: runs alongside, blocked on sources
 

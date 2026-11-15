@@ -3,6 +3,18 @@
 Draft for Gate 0, 15 November 2026. Changing anything in the "Out" lists needs Amit's
 written confirmation in the chat, which is then recorded in `docs/DEVLOG.md`.
 
+## Purpose
+
+**The current goal is a demo.** Amit confirmed on 15 November 2026 that the earlier
+vertical-slice notes are background, and that the game may evolve towards that vision
+later if the demo and investors support it. That is a separate decision, taken in
+writing after the demo exists. It does not relax anything below.
+
+One caution recorded at the time: a 2D grey-box tactics demo can show that the core
+loop is fun, that the history is handled honestly, and that the project ships. It does
+not show that a 3D shooter can be built, which needs a different engine, team and
+budget.
+
 ## In: version 1.0 ceiling
 
 - Three missions, 20 to 40 minutes each, one playable side.
@@ -16,7 +28,7 @@ written confirmation in the chat, which is then recorded in `docs/DEVLOG.md`.
 
 | Phase | Contents | Gate |
 |---|---|---|
-| 0. Foundations | Documents, repository, Godot project, tests, export command, CI. No gameplay code. | Gate 0: Amit approves the GDD and this file. |
+| 0. Foundations | Documents, repository, Godot project, tests, export command, CI. No gameplay code. | Gate 0: **passed 15 November 2026.** |
 | 1. Grey-box combat | Flat test map, one section in two teams, one enemy picket. Movement, line of sight, cover, firing, suppression, enemy behaviour, orders with pause, debug overlay, seeded simulation. | Gate 1: see below. |
 | 2. The systems that make it this game | Weather states and effects. Ammunition, scavenging, fatigue. One appeal encounter. Win, lose and withdraw. Save and load. | Gate 2: one complete grey-box mission of 20 minutes or more. |
 | 3. Vertical slice | Art direction choice, art for this one mission, audio, briefing and debrief text, options, key rebinding, text size, colour-blind-safe indicators, Hindi. | Gate 3: five strangers play it. |
@@ -42,9 +54,9 @@ Agreed before anyone plays, so the result cannot be argued into a pass afterward
 
 **Time-box.** At six hours a week:
 
-- Gate 1 build ready eight weeks after Gate 0 is approved.
+- Gate 1 build ready eight weeks after Gate 0, so by **10 January 2027**.
 - Up to two iteration rounds of two weeks each if the criteria are not met.
-- At week twelve without a pass, work stops for a written review with three options:
+- At week twelve (**7 February 2027**) without a pass, work stops for a written review with three options:
   cut to a smaller idea, change the core loop, or shelve the project.
 
 ## Out of version 1.0
