@@ -24,10 +24,10 @@ what was decided since. Where they differ, this file wins.
   the Phase 3 art decision.
 - **Gate 1 criterion 1 is met and is now a test** (`test_gate1_criterion.gd`). Run
   `make gate1` to see the battles behind it. Criteria 2 to 5 need Amit to play.
-- Phase 2 so far: mission outcomes (objective taken, withdrew, section broken) and a
-  debrief.
-- Phase 2 still to build: weather as a rule, scavenging, condition (hunger,
-  fatigue), one appeal encounter, save and load, and a mission-length map.
+- Phase 2 so far: mission outcomes (objective taken, withdrew, section broken), a
+  debrief, and weather as a rule (sight, slopes, stoppages; it changes on a schedule).
+- Phase 2 still to build: scavenging, condition (hunger, fatigue), one appeal
+  encounter, save and load, and a mission-length map.
 - CI is green on GitHub, including the recorded battle, so the simulation gives the
   same result on macOS and Linux so far.
 - **Purpose: this build is a demo.** Amit may later take the game towards his earlier
@@ -177,6 +177,11 @@ tools/           toolchain and check scripts
 - **The game's name lives in six places:** `project.godot`, `export_presets.cfg`,
   `tools/export_windows.sh`, `Makefile`, `.github/workflows/ci.yml` and
   `game/locale/strings.csv`.
+- **Routes ignore danger.** Pathfinding takes the quickest way, counting slopes as
+  slow. A change to slope cost or to the map can silently send a team across open
+  ground instead of behind cover. Check with `make gate1` and a screenshot.
+- **Use `sim.can_engage()` for "can he shoot at him".** It applies the weather's sight
+  limit. Do not compare distances to a weapon's range directly.
 - **Changing numbers in `game/data/` can break the game's central claim.** The Gate 1
   test catches it. Fix the data; never loosen the test.
 - **Briefing text is history.** A `BRIEFING_` string may only change together with its

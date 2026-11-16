@@ -22,6 +22,8 @@ const MARK_LINES: Array[String] = [
 	"CONTROLS_MARK_4",
 	"CONTROLS_MARK_5",
 	"CONTROLS_MARK_6",
+	"CONTROLS_MARK_7",
+	"CONTROLS_MARK_8",
 ]
 
 ## Scene to open when the player continues. Empty when shown inside the map.

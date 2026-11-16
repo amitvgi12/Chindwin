@@ -20,8 +20,8 @@ Gate 2: one complete grey-box mission, start to finish, twenty minutes or more.
 | # | Task | Size | State |
 |---|---|---|---|
 | 1 | Mission outcomes and a debrief: objective taken, withdrew, section broken. | S | Done 16 Nov 2026 |
-| 2 | Weather as a rule: states that change during a mission and affect sight, movement on slopes and weapon stoppages. | M | Next |
-| 3 | Scavenging: taking rounds from where the enemy stood, at the cost of time in the open. | M | |
+| 2 | Weather as a rule: states that change during a mission and affect sight, movement on slopes and weapon stoppages. | M | Done 16 Nov 2026 |
+| 3 | Scavenging: taking rounds from where the enemy stood, at the cost of time in the open. | M | Next |
 | 4 | Condition: hunger and fatigue as the slow half of will to fight. | M | |
 | 5 | One appeal encounter, with a real chance of failure. Blocked on a source for the method; until then it is labelled INVENTED. | M | |
 | 6 | Save and load. | M | |
@@ -34,7 +34,10 @@ Carried over from Phase 1:
 - The track is decoration. Walking on it is no faster.
 - The picket never moves to face a flank. It holds or it leaves.
 - A team falls back only to where it started, not to a place of your choosing.
-- Covering fire adds less than the flank itself does (95% against 88% success).
+- Covering fire adds less than the flank itself does (98% against 86% success).
+- On the one-minute test range the weather barely matters: the downpour arrives after
+  most fights are over. It needs the mission-length map to show what it does.
+- Routes take the quickest way with no regard for danger.
 
 ## Phase 1: done
 

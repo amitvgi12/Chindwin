@@ -61,7 +61,8 @@ static func play(plan: Plan, seed_value: int) -> Result:
 	var rules: SimRules = load(RULES) as SimRules
 	var scenario: Scenario = Scenario.load_file(TEST_RANGE)
 	var weapons: Dictionary[String, WeaponDef] = WeaponLibrary.load_for(scenario)
-	var sim: Simulation = Simulation.new(rules, scenario, weapons, seed_value)
+	var weathers: Dictionary[String, WeatherDef] = WeatherLibrary.load_for(scenario)
+	var sim: Simulation = Simulation.new(rules, scenario, weapons, seed_value, weathers)
 	var player: SimSoldier.BattleSide = SimSoldier.BattleSide.PLAYER
 	var enemy: SimSoldier.BattleSide = SimSoldier.BattleSide.ENEMY
 

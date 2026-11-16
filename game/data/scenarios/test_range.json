@@ -13,8 +13,17 @@
     [23, 8, 1, 4],
     [33, 7, 1, 6]
   ],
+  "slope_rects": [
+    [27, 0, 5, 3],
+    [27, 17, 5, 3]
+  ],
   "tracks": [
     [[0, 10], [14, 10], [16, 12], [23, 12], [25, 10], [39, 10]]
+  ],
+  "weather": [
+    {"at_tick": 0, "state": "rain"},
+    {"at_tick": 600, "state": "downpour"},
+    {"at_tick": 1100, "state": "rain"}
   ],
   "enemy_fallback": [38, 9],
   "section_broken_below": 4,

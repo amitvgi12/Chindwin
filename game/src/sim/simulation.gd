@@ -42,6 +42,10 @@ var events: Array[SimEvent] = []
 var fallback_cell: Vector2i = Vector2i.ZERO
 ## What the enemy decided and why, one line per decision, for reading afterwards.
 var ai_log: Array[String] = []
+## The weather now, or null when the scenario has none.
+var weather: WeatherDef
+## Id of the weather now, or "" when the scenario has none.
+var weather_id: String = ""
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _pending_orders: Array[Order] = []
@@ -50,15 +54,25 @@ var _outcome: Outcome = Outcome.IN_PROGRESS
 ## Player teams whose last order was to fall back.
 var _teams_withdrawing: Dictionary[int, bool] = {}
 var _rounds_at_start: Dictionary[SimSoldier.BattleSide, int] = {}
+var _weathers: Dictionary[String, WeatherDef] = {}
+var _weather_schedule: Array[Scenario.WeatherChange] = []
 var _has_fallback_cell: bool = false
 var _picket_ai: PicketAi = PicketAi.new()
 
 
 func _init(
-	p_rules: SimRules, scenario: Scenario, weapons: Dictionary[String, WeaponDef], seed_value: int
+	p_rules: SimRules,
+	scenario: Scenario,
+	weapons: Dictionary[String, WeaponDef],
+	seed_value: int,
+	weathers: Dictionary[String, WeatherDef] = {}
 ) -> void:
 	rules = p_rules
-	grid = BattleGrid.new(scenario.width, scenario.height, scenario.blocked, scenario.cover)
+	grid = BattleGrid.new(
+		scenario.width, scenario.height, scenario.blocked, scenario.cover, scenario.slopes
+	)
+	_weathers = weathers
+	_weather_schedule = scenario.weather_schedule
 	_rng.seed = seed_value
 	fallback_cell = scenario.enemy_fallback
 	_has_fallback_cell = scenario.has_enemy_fallback
@@ -74,6 +88,8 @@ func _init(
 		soldier.rounds = spec.rounds
 		soldiers.append(soldier)
 		_rounds_at_start[spec.side] = _rounds_at_start.get(spec.side, 0) + spec.rounds
+	if not _weather_schedule.is_empty() and _weather_schedule[0].at_tick == 0:
+		set_weather(_weather_schedule[0].weather_id)
 
 
 ## Ask a player team to walk to a cell. Returns false when the order makes no
@@ -126,6 +142,7 @@ func step() -> void:
 	if _outcome != Outcome.IN_PROGRESS:
 		return
 	tick += 1
+	_follow_weather_schedule()
 	_apply_pending_orders()
 	_fade_suppression()
 	_update_broken()
@@ -137,6 +154,44 @@ func step() -> void:
 			_advance_movement(soldier)
 	_resolve_fire()
 	_outcome = _work_out_outcome()
+
+
+## Change the weather now. Returns false when no such weather was loaded.
+## The schedule calls this; so can a debug key.
+func set_weather(id: String) -> bool:
+	if not _weathers.has(id):
+		return false
+	weather_id = id
+	weather = _weathers[id]
+	grid.set_slope_cost_percent(weather.slope_move_percent)
+	log_event(SimEvent.Kind.WEATHER_CHANGED, -1, -1, Vector2i.ZERO)
+	return true
+
+
+## Ids of every weather state this simulation can switch to, in name order.
+func weather_ids() -> Array[String]:
+	var ids: Array[String] = _weathers.keys()
+	ids.sort()
+	return ids
+
+
+## How far a man can shoot right now: his weapon's range, cut down to how far
+## anyone can see in this weather.
+func effective_range_cells(shooter: SimSoldier) -> int:
+	if shooter.weapon == null:
+		return 0
+	if weather == null:
+		return shooter.weapon.range_cells
+	return mini(shooter.weapon.range_cells, weather.sight_range_cells)
+
+
+## True when a man could fire at another right now: in range for this
+## weather, and nothing tall in the way.
+func can_engage(shooter: SimSoldier, target: SimSoldier) -> bool:
+	var reach: int = effective_range_cells(shooter)
+	if shooter.cell.distance_squared_to(target.cell) > reach * reach:
+		return false
+	return grid.has_line_of_sight(shooter.cell, target.cell)
 
 
 ## How the mission ended, or IN_PROGRESS.
@@ -299,6 +354,8 @@ func hit_chance_percent(shooter: SimSoldier, target: SimSoldier) -> int:
 ## their snapshots are equal, which is how the tests check determinism.
 func snapshot() -> String:
 	var parts: PackedStringArray = PackedStringArray(["tick=%d" % tick])
+	if not weather_id.is_empty():
+		parts.append("weather=%s" % weather_id)
 	for soldier: SimSoldier in soldiers:
 		var fields: Array[int] = [
 			soldier.cell.x,
@@ -326,6 +383,12 @@ func _apply_pending_orders() -> void:
 		else:
 			_set_fire_control(team, order)
 	_pending_orders.clear()
+
+
+func _follow_weather_schedule() -> void:
+	for change: Scenario.WeatherChange in _weather_schedule:
+		if change.at_tick == tick:
+			set_weather(change.weather_id)
 
 
 ## Checked once a tick, in this order: taking the objective counts even if it
@@ -403,10 +466,11 @@ func _advance_movement(soldier: SimSoldier) -> void:
 	var next_cell: Vector2i = soldier.path[0]
 	if soldier.step_ticks_left == 0:
 		var diagonal: bool = next_cell.x != soldier.cell.x and next_cell.y != soldier.cell.y
-		soldier.step_ticks_total = (
-			rules.move_ticks_diagonal if diagonal else rules.move_ticks_orthogonal
-		)
-		soldier.step_ticks_left = soldier.step_ticks_total
+		var cost: int = rules.move_ticks_diagonal if diagonal else rules.move_ticks_orthogonal
+		if weather != null and grid.is_slope(next_cell):
+			cost = cost * weather.slope_move_percent / 100
+		soldier.step_ticks_total = cost
+		soldier.step_ticks_left = cost
 	soldier.step_ticks_left -= 1
 	if soldier.step_ticks_left > 0:
 		return
@@ -446,6 +510,8 @@ func _resolve_fire() -> void:
 		var target: SimSoldier = _choose_target(shooter)
 		if target == null:
 			continue
+		if _weapon_stops(shooter):
+			continue
 		shooter.rounds -= 1
 		var interval: int = shooter.weapon.fire_interval_ticks
 		if pinned:
@@ -463,6 +529,19 @@ func _resolve_fire() -> void:
 			_log(SimEvent.Kind.SHOT_HIT, shot.shooter.id, shot.target.id, shot.target.cell)
 		else:
 			_log(SimEvent.Kind.SHOT_MISSED, shot.shooter.id, shot.target.id, shot.target.cell)
+
+
+## In wet weather a shot may not go off. The round is not spent, and the man
+## needs a moment to clear the weapon. No dice are rolled when the chance is
+## zero, so dry weather leaves the sequence of random numbers untouched.
+func _weapon_stops(shooter: SimSoldier) -> bool:
+	if weather == null or weather.stoppage_chance_percent <= 0:
+		return false
+	if _rng.randi_range(1, 100) > weather.stoppage_chance_percent:
+		return false
+	shooter.fire_cooldown_ticks = weather.stoppage_clear_ticks
+	_log(SimEvent.Kind.STOPPAGE, shooter.id, -1, shooter.cell)
+	return true
 
 
 func _make_casualty(soldier: SimSoldier) -> void:
@@ -527,21 +606,18 @@ func _update_broken() -> void:
 ## under the least suppression, then the nearest, then the lowest id. Aiming
 ## at whoever still has his head up spreads a team's fire across the enemy.
 func _choose_target(shooter: SimSoldier) -> SimSoldier:
-	var range_squared: int = shooter.weapon.range_cells * shooter.weapon.range_cells
 	var best: SimSoldier = null
 	var best_distance: int = 0
 	for candidate: SimSoldier in soldiers:
 		if not candidate.in_fight() or candidate.side == shooter.side:
 			continue
 		var distance: int = shooter.cell.distance_squared_to(candidate.cell)
-		if distance > range_squared:
-			continue
 		var better: bool = (
 			best == null
 			or candidate.suppression < best.suppression
 			or (candidate.suppression == best.suppression and distance < best_distance)
 		)
-		if better and grid.has_line_of_sight(shooter.cell, candidate.cell):
+		if better and can_engage(shooter, candidate):
 			best = candidate
 			best_distance = distance
 	return best

@@ -13,6 +13,8 @@ enum Kind {
 	SHOT_HIT,
 	PICKET_FALLS_BACK,
 	WITHDREW,
+	STOPPAGE,
+	WEATHER_CHANGED,
 }
 
 var tick: int

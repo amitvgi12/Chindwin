@@ -66,11 +66,8 @@ func _is_flanked(sim: Simulation, fit: Array[SimSoldier]) -> bool:
 			continue
 		if attacker.weapon == null:
 			continue
-		var range_squared: int = attacker.weapon.range_cells * attacker.weapon.range_cells
 		for member: SimSoldier in fit:
-			if attacker.cell.distance_squared_to(member.cell) > range_squared:
-				continue
-			if not sim.grid.has_line_of_sight(attacker.cell, member.cell):
+			if not sim.can_engage(attacker, member):
 				continue
 			if not sim.grid.gives_cover(attacker.cell, member.cell):
 				return true

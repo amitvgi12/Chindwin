@@ -27,7 +27,6 @@ const CELL_PX: int = 32
 ## Most simulation ticks run in one drawn frame, so a slow frame cannot snowball.
 const MAX_STEPS_PER_FRAME: int = 5
 const TRACER_SECONDS: float = 0.35
-const RAIN_STREAKS: int = 170
 
 # Ground and terrain.
 const COLOUR_GROUND_LIGHT: Color = Color("5c5a40")
@@ -37,7 +36,8 @@ const COLOUR_JUNGLE: Array[Color] = [Color("1f3320"), Color("294228"), Color("17
 const COLOUR_BANK: Color = Color("8f7a52")
 const COLOUR_BANK_EDGE: Color = Color("3a3122")
 const COLOUR_RAIN: Color = Color(0.86, 0.9, 0.95, 0.2)
-const COLOUR_RAIN_HAZE: Color = Color(0.45, 0.55, 0.65, 0.1)
+const COLOUR_RAIN_HAZE: Color = Color(0.45, 0.55, 0.65, 1.0)
+const COLOUR_SLOPE_STROKE: Color = Color(0.0, 0.0, 0.0, 0.22)
 
 # Soldiers. The palette stays distinct for colour-blind players, and shape
 # differs too: player soldiers are circles, enemy soldiers are diamonds.
@@ -98,6 +98,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _draw() -> void:
 	_draw_ground()
+	_draw_slopes()
 	_draw_tracks()
 	_draw_banks()
 	_draw_jungle()
@@ -124,7 +125,10 @@ func restart() -> void:
 	var weapons: Dictionary[String, WeaponDef] = WeaponLibrary.load_for(_scenario)
 	for weapon_id: String in _scenario.missing_weapons(weapons):
 		push_error("%s: no weapon file for '%s'" % [SCENARIO_PATH, weapon_id])
-	sim = Simulation.new(rules, _scenario, weapons, DEFAULT_SEED)
+	var weathers: Dictionary[String, WeatherDef] = WeatherLibrary.load_for(_scenario)
+	for missing_id: String in _scenario.missing_weather(weathers):
+		push_error("%s: no weather file for '%s'" % [SCENARIO_PATH, missing_id])
+	sim = Simulation.new(rules, _scenario, weapons, DEFAULT_SEED, weathers)
 	paused = true
 	selected_team = 1
 	_team_fire.clear()
@@ -172,6 +176,8 @@ func handle_input(event: InputEvent) -> void:
 		toggle_help()
 	elif event.is_action_pressed(InputActions.TOGGLE_OVERLAY):
 		debug_overlay = not debug_overlay
+	elif event.is_action_pressed(InputActions.DEBUG_NEXT_WEATHER):
+		debug_next_weather()
 	elif event.is_action_pressed(InputActions.RESTART):
 		restart()
 	elif event is InputEventMouseButton:
@@ -210,6 +216,24 @@ func order_selected_team_to(cell: Vector2i, as_waypoint: bool = false) -> bool:
 ## Order the selected team back to where it started. Works while paused.
 func order_selected_team_to_fall_back() -> bool:
 	return sim.order_fall_back(selected_team)
+
+
+## Debug only: switch to the next weather state. Does nothing unless the
+## debug overlay is showing, so it cannot be pressed by accident in play.
+func debug_next_weather() -> void:
+	var ids: Array[String] = sim.weather_ids()
+	if not debug_overlay or ids.is_empty():
+		return
+	sim.set_weather(ids[(ids.find(sim.weather_id) + 1) % ids.size()])
+
+
+## What the status strip says about the weather, or "" when there is none.
+func weather_text() -> String:
+	if sim.weather == null:
+		return ""
+	return tr("HUD_WEATHER").format(
+		{"weather": tr(sim.weather.name_key), "sight": sim.weather.sight_range_cells}
+	)
 
 
 ## Show or hide the "how to play" page. Showing it pauses the game.
@@ -269,7 +293,7 @@ func _refresh_hud() -> void:
 	_refresh_debug_text()
 	var state: String = tr("HUD_PAUSED") if paused else tr("HUD_RUNNING")
 	var status: String = tr("HUD_STATUS").format(
-		{"state": state, "time": _clock_text(), "team": selected_team}
+		{"state": state, "time": _clock_text(), "team": selected_team, "weather": weather_text()}
 	)
 	var strengths: PackedStringArray = PackedStringArray()
 	for team_id: int in sim.team_ids(SimSoldier.BattleSide.PLAYER):
@@ -474,6 +498,17 @@ func _draw_ground() -> void:
 			draw_rect(_cell_rect(Vector2i(x, y)), colour)
 
 
+## Slopes: short strokes running downhill, as a map would hatch them.
+func _draw_slopes() -> void:
+	for cell: Vector2i in sim.grid.slope_cells():
+		var corner: Vector2 = Vector2(cell.x * CELL_PX, cell.y * CELL_PX)
+		for stroke: int in 3:
+			var x: float = 6.0 + stroke * 10.0
+			draw_line(
+				corner + Vector2(x, 8.0), corner + Vector2(x - 4.0, 24.0), COLOUR_SLOPE_STROKE, 1.5
+			)
+
+
 ## A muddy track. Drawn only: no rule uses tracks yet.
 func _draw_tracks() -> void:
 	for track: PackedVector2Array in _scenario.tracks:
@@ -603,13 +638,18 @@ func _draw_tracers() -> void:
 		draw_line(tracer.from, tracer.to, colour, 3.5 if tracer.hit else 1.5)
 
 
-## Rain: a faint haze and slanting streaks. It stops moving while paused.
-## Decoration only until weather becomes a rule in Phase 2.
+## Rain: a haze and slanting streaks, as heavy as the current weather says.
+## It stops moving while paused.
 func _draw_rain() -> void:
+	if sim.weather == null:
+		return
 	var size: Vector2 = Vector2(sim.grid.width * CELL_PX, sim.grid.height * CELL_PX)
-	draw_rect(Rect2(Vector2.ZERO, size), COLOUR_RAIN_HAZE)
+	if sim.weather.haze_percent > 0:
+		var haze: Color = COLOUR_RAIN_HAZE
+		haze.a = sim.weather.haze_percent / 100.0
+		draw_rect(Rect2(Vector2.ZERO, size), haze)
 	var fall: Vector2 = Vector2(-7.0, 20.0)
-	for streak: int in RAIN_STREAKS:
+	for streak: int in sim.weather.rain_streaks:
 		var speed: float = 620.0 + _speckle(streak, 5) * 260.0
 		var travelled: float = _rain_clock * speed + _speckle(streak, 9) * (size.y + 40.0)
 		var start: Vector2 = Vector2(
@@ -629,15 +669,12 @@ func _draw_debug() -> void:
 		var from: Vector2 = _soldier_position(shooter)
 		var is_enemy: bool = shooter.side == SimSoldier.BattleSide.ENEMY
 		if is_enemy:
-			var reach: float = shooter.weapon.range_cells * CELL_PX
+			var reach: float = sim.effective_range_cells(shooter) * CELL_PX
 			draw_arc(from, reach, 0.0, TAU, 64, COLOUR_DEBUG_RANGE, 1.0)
 		for target: SimSoldier in sim.soldiers:
 			if not target.in_fight() or target.side == shooter.side:
 				continue
-			var range_cells: int = shooter.weapon.range_cells
-			if shooter.cell.distance_squared_to(target.cell) > range_cells * range_cells:
-				continue
-			if not sim.grid.has_line_of_sight(shooter.cell, target.cell):
+			if not sim.can_engage(shooter, target):
 				continue
 			var covered: bool = sim.grid.gives_cover(shooter.cell, target.cell)
 			var to: Vector2 = _soldier_position(target)

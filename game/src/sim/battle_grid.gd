@@ -7,6 +7,8 @@ extends RefCounted
 ## Two kinds of obstacle:
 ##   tall  (thick jungle)  stops movement and sight
 ##   low   (a bank, logs)  stops movement, not sight, and gives cover
+## One kind of ground:
+##   slope                 open, but slower to cross; how much depends on the weather
 
 ## Fixed order in which neighbouring cells are visited, so results never vary.
 const NEIGHBOURS: Array[Vector2i] = [
@@ -28,10 +30,17 @@ var height: int
 
 var _tall: Dictionary[Vector2i, bool] = {}
 var _low: Dictionary[Vector2i, bool] = {}
+var _slope: Dictionary[Vector2i, bool] = {}
 var _astar: AStarGrid2D = AStarGrid2D.new()
 
 
-func _init(p_width: int, p_height: int, tall: Array[Vector2i], low: Array[Vector2i] = []) -> void:
+func _init(
+	p_width: int,
+	p_height: int,
+	tall: Array[Vector2i],
+	low: Array[Vector2i] = [],
+	slopes: Array[Vector2i] = []
+) -> void:
 	width = p_width
 	height = p_height
 	_astar.region = Rect2i(0, 0, width, height)
@@ -47,6 +56,9 @@ func _init(p_width: int, p_height: int, tall: Array[Vector2i], low: Array[Vector
 		if in_bounds(cell) and not _tall.has(cell):
 			_low[cell] = true
 			_astar.set_point_solid(cell, true)
+	for cell: Vector2i in slopes:
+		if in_bounds(cell) and not is_blocked(cell):
+			_slope[cell] = true
 
 
 func in_bounds(cell: Vector2i) -> bool:
@@ -65,6 +77,21 @@ func blocks_sight(cell: Vector2i) -> bool:
 
 func is_low_cover(cell: Vector2i) -> bool:
 	return _low.has(cell)
+
+
+func is_slope(cell: Vector2i) -> bool:
+	return _slope.has(cell)
+
+
+func slope_cells() -> Array[Vector2i]:
+	return _slope.keys()
+
+
+## Tell the route-finder how slow slopes are right now, as a percentage of
+## normal, so that routes go round them when that is quicker.
+func set_slope_cost_percent(percent: int) -> void:
+	for cell: Vector2i in _slope:
+		_astar.set_point_weight_scale(cell, maxf(1.0, percent / 100.0))
 
 
 func tall_cells() -> Array[Vector2i]:

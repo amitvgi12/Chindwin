@@ -14,6 +14,14 @@ class SoldierSpec:
 	var rounds: int
 
 
+## A change of weather at a given moment.
+class WeatherChange:
+	extends RefCounted
+	var at_tick: int
+	## File name, without extension, of a weather state in data/weather/.
+	var weather_id: String
+
+
 ## Translation key for the scenario's display name.
 var name_key: String = ""
 var width: int = 0
@@ -22,6 +30,10 @@ var height: int = 0
 var blocked: Array[Vector2i] = []
 ## Low obstacles: stop movement, not sight, and give cover.
 var cover: Array[Vector2i] = []
+## Open ground that is slower to cross.
+var slopes: Array[Vector2i] = []
+## The weather through the mission, earliest first. Empty means no weather.
+var weather_schedule: Array[WeatherChange] = []
 ## Tracks, each a list of cells. Drawn on the map only; no rule uses them yet.
 var tracks: Array[PackedVector2Array] = []
 var soldiers: Array[SoldierSpec] = []
@@ -60,6 +72,10 @@ static func from_json_text(text: String) -> Scenario:
 	for cell: Vector2i in scenario._read_rects(data.get("cover_rects", []), "cover_rects"):
 		if not scenario.blocked.has(cell):
 			scenario.cover.append(cell)
+	for cell: Vector2i in scenario._read_rects(data.get("slope_rects", []), "slope_rects"):
+		if not scenario.blocked.has(cell) and not scenario.cover.has(cell):
+			scenario.slopes.append(cell)
+	scenario._read_weather(data.get("weather", []))
 	scenario._read_tracks(data.get("tracks", []))
 	scenario._read_soldiers(data.get("soldiers", []))
 	if data.has("section_broken_below"):
@@ -82,6 +98,39 @@ func missing_weapons(weapons: Dictionary[String, WeaponDef]) -> Array[String]:
 		if not weapons.has(spec.weapon_id) and not missing.has(spec.weapon_id):
 			missing.append(spec.weapon_id)
 	return missing
+
+
+## Weather ids the schedule asks for that are not in `weathers`.
+func missing_weather(weathers: Dictionary[String, WeatherDef]) -> Array[String]:
+	var missing: Array[String] = []
+	for change: WeatherChange in weather_schedule:
+		if not weathers.has(change.weather_id) and not missing.has(change.weather_id):
+			missing.append(change.weather_id)
+	return missing
+
+
+func _read_weather(value: Variant) -> void:
+	if not value is Array:
+		errors.append("weather must be a list")
+		return
+	var last_tick: int = -1
+	for entry: Variant in value as Array:
+		if not entry is Dictionary:
+			errors.append("each weather entry must be an object")
+			continue
+		var fields: Dictionary = entry
+		var change: WeatherChange = WeatherChange.new()
+		change.at_tick = _as_int(fields.get("at_tick"), "weather at_tick", errors)
+		change.weather_id = str(fields.get("state", ""))
+		if change.weather_id.is_empty():
+			errors.append("each weather entry needs a state")
+		elif change.at_tick <= last_tick:
+			errors.append("weather entries must be in order of at_tick, each later than the last")
+		else:
+			last_tick = change.at_tick
+			weather_schedule.append(change)
+	if not weather_schedule.is_empty() and weather_schedule[0].at_tick != 0:
+		errors.append("the first weather entry must be at_tick 0")
 
 
 ## Every cell covered by a list of [x, y, width, height] rectangles.

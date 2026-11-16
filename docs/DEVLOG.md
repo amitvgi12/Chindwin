@@ -33,6 +33,59 @@ being made without evidence, and should say so.
 - Walk both teams at the picket until fewer than four men are fit.
 - Advance, then press `B` for each team and wait for them to get back.
 
+### Done later the same session: weather as a rule
+
+- **Weather states** in `game/data/weather/`: dry, rain and downpour. Each sets how
+  far anyone can see, how slow slopes are, and how often a rifle stops.
+- **It changes during a mission** on a schedule in the scenario. The test range has
+  rain, a downpour from one minute in, then rain again.
+- **Sight.** Nobody can shoot further than the weather lets him see. In a downpour
+  that is 8 cells against a rifle's 14, so a team firing from the middle bank can no
+  longer reach the picket.
+- **Slopes.** A new kind of ground, drawn with short strokes. Walking onto it costs
+  more, and more again when wet. Routes go round a slope when that is quicker.
+- **Stoppages.** In rain a shot may not go off. The round is kept and the man needs
+  two seconds to clear the rifle.
+- **On screen:** the rain is as heavy as the weather says, the status strip names the
+  weather and the sight distance, and with the debug overlay on, `W` steps through the
+  weather states.
+- 187 tests pass. `make check` is clean.
+
+**How to see it:** `make run`, press `O`, then `W` a few times. Watch the sight
+distance in the status strip and the white range rings shrink in a downpour.
+
+**What the Gate 1 check says now** (200 battles per plan, with weather on):
+
+| Attack | Succeeded | Attackers still fit, of 10 |
+|---|---|---|
+| Frontal, stopping in front | 0 of 200 | 3.0 |
+| Frontal rush to the picket's bank | 24 of 200 | 3.6 |
+| Pin, then flank | 197 of 200 | 9.0 |
+| Flank with team 1 holding fire | 173 of 200 | 7.4 |
+
+The frontal figures for men still fit are higher than before only because the mission
+now stops when the section is broken, at three men.
+
+**Found while tuning:**
+
+- The rush went from 3% to 29% success when rifles stopped 3% of the time for three
+  seconds. A short decisive approach is very sensitive to the defender losing a few
+  shots. Set to 1% and two seconds in rain; the rush now succeeds 12% of the time.
+  The criterion allows 20%.
+- With slopes along the whole flank route, the quickest route became the one across
+  open ground, and the flanking team walked into the picket's fire. The slopes were
+  shortened to the last five cells. Routes do not know about danger.
+
+**Not verified:** how the downpour feels in play, and whether losing your covering
+fire to the weather reads as the weather being a character or as bad luck.
+
+| Decision | Why |
+|---|---|
+| Weather follows a schedule in the scenario | The mission designer decides when the downpour comes. A seeded random weather can be added later if replays feel the same. |
+| A stoppage keeps the round | Losing time is the cost. Losing ammunition too would punish twice. |
+| No dice are rolled when the stoppage chance is zero | Dry weather then leaves the sequence of random numbers alone, so adding weather did not disturb any existing test. |
+| Sound was left out | The brief says rain hides sound, but there is no hearing in the game and it was cut from scope at Gate 0. |
+
 ### Decisions and why
 
 | Decision | Why |

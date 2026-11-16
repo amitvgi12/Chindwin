@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="WeatherDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/sim/weather_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+name_key = "WEATHER_DRY"
+sight_range_cells = 99
+slope_move_percent = 130
+stoppage_chance_percent = 0
+stoppage_clear_ticks = 30
+rain_streaks = 0
+haze_percent = 0

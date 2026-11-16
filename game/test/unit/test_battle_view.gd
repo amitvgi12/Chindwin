@@ -290,3 +290,17 @@ func test_a_team_with_nobody_left_says_so() -> void:
 	view._process(0.0)
 	assert_string_contains(view.hud_text(), "Team 2: none left")
 	assert_false(view.hud_text().contains("Team 2: 0 of 5"))
+
+
+func test_the_status_strip_names_the_weather_and_how_far_men_can_see() -> void:
+	assert_string_contains(view.hud_text(), "Rain: sight 16")
+
+
+func test_w_changes_the_weather_only_while_the_debug_overlay_is_on() -> void:
+	view.handle_input(_key(KEY_W))
+	assert_eq(view.sim.weather_id, "rain", "overlay off: nothing happens")
+	view.handle_input(_key(KEY_O))
+	view.handle_input(_key(KEY_W))
+	assert_ne(view.sim.weather_id, "rain")
+	view._process(0.0)
+	assert_false(view.hud_text().contains("Rain: sight 16"))

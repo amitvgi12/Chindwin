@@ -14,11 +14,11 @@ const RULES: String = "res://data/rules/prototype_rules.tres"
 ## run the tests, copy the new value from the failure message, and say why
 ## in the commit.
 const GOLDEN_SNAPSHOT: String = (
-	"tick=601 0:22,9,1,0,0,49,0,0 1:20,11,0,0,20,0,0,0 2:21,9,1,0,0,49,0,0 "
-	+ "3:22,8,1,0,0,49,0,0 4:20,11,0,0,20,0,0,0 5:31,1,0,0,20,0,0,0 "
-	+ "6:32,1,0,0,20,0,0,0 7:33,2,1,3,19,53,1,0 8:31,1,0,0,20,0,0,0 "
-	+ "9:33,1,0,0,20,0,0,0 10:34,8,1,0,0,0,0,0 11:34,9,1,0,0,0,0,0 "
-	+ "12:34,10,1,0,0,0,0,0 13:34,11,1,0,0,0,0,0"
+	"tick=434 weather=rain 0:22,9,1,0,4,40,0,0 1:22,10,1,0,5,40,0,0 "
+	+ "2:21,9,1,0,5,40,0,0 3:20,8,0,0,20,0,0,0 4:21,10,1,0,4,40,0,0 "
+	+ "5:33,2,1,2,18,59,0,0 6:33,1,1,4,18,55,0,0 7:33,2,1,3,18,63,0,0 "
+	+ "8:33,3,1,1,18,51,0,0 9:33,1,0,0,20,0,0,0 10:38,9,1,0,13,0,1,1 "
+	+ "11:39,9,1,0,15,0,1,1 12:38,10,1,0,13,0,1,1 13:34,11,0,0,13,0,0,0"
 )
 
 
@@ -27,7 +27,8 @@ func _scripted_battle(seed_value: int) -> Simulation:
 	var rules: SimRules = load(RULES) as SimRules
 	var scenario: Scenario = Scenario.load_file(TEST_RANGE)
 	var weapons: Dictionary[String, WeaponDef] = WeaponLibrary.load_for(scenario)
-	var sim: Simulation = Simulation.new(rules, scenario, weapons, seed_value)
+	var weathers: Dictionary[String, WeatherDef] = WeatherLibrary.load_for(scenario)
+	var sim: Simulation = Simulation.new(rules, scenario, weapons, seed_value, weathers)
 	sim.order_move(1, Vector2i(22, 9))
 	for count: int in 200:
 		sim.step()
