@@ -26,9 +26,14 @@ what was decided since. Where they differ, this file wins.
   `make gate1` to see the battles behind it. Criteria 2 to 5 need Amit to play.
 - Phase 2 so far: mission outcomes (objective taken, withdrew, section broken), a
   debrief, weather as a rule (sight, slopes, stoppages; it changes on a schedule),
-  and scavenging (ammunition boxes, rounds left by the fallen, a gather order).
-- Phase 2 still to build: condition (hunger, fatigue), one appeal encounter, save
-  and load, and a mission-length map.
+  scavenging (ammunition boxes, rounds left by the fallen, a gather order), and the
+  appeal encounter (`C`: call on an Indian enemy group to come over; usually fails).
+- Phase 2 still to build: condition (hunger, fatigue, food), save and load, a
+  mission-length map, and the Gate 2 playtest sheet.
+- **The appeal encounter is COMPOSITE.** Its method (shouted appeals in Hindustani)
+  rests on second-hand sources listed in `docs/history/TO_VERIFY.md` section 9.
+  Loudspeakers, leaflets, Bose-signed passes, disguise and calling NCOs by name were
+  not found in any source and must not be added.
 - CI is green on GitHub, including the recorded battle, so the simulation gives the
   same result on macOS and Linux so far.
 - **Purpose: this build is a demo.** Amit may later take the game towards his earlier

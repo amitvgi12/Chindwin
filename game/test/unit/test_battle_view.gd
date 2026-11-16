@@ -214,7 +214,7 @@ func test_the_debrief_reports_a_taken_objective_with_its_cost() -> void:
 	view._process(0.0)
 	assert_string_contains(view.banner_text(), "The picket has gone")
 	assert_string_contains(view.banner_text(), "9 of 10 fit, 1 down")
-	assert_string_contains(view.banner_text(), "1 down, 3 got away, 0 still holding")
+	assert_string_contains(view.banner_text(), "1 down, 3 got away, 0 came over, 0 still holding")
 	assert_string_contains(view.banner_text(), "left of 200")
 
 
@@ -350,3 +350,29 @@ func test_when_the_whole_section_is_out_of_rounds_the_strip_says_what_to_do() ->
 	view._process(0.0)
 	assert_string_contains(view.hud_text(), "G gathers")
 	assert_string_contains(view.hud_text(), "B falls back")
+
+
+func test_c_far_from_the_picket_says_nobody_is_within_earshot() -> void:
+	view.handle_input(_key(KEY_C))
+	view._process(0.0)
+	assert_string_contains(view.banner_text(), "Nobody within earshot")
+	assert_false(view.sim.appeal_in_progress())
+
+
+func test_c_within_earshot_starts_an_appeal_and_says_so() -> void:
+	var picket: SimSoldier = view.sim.living(SimSoldier.BattleSide.ENEMY, 1)[0]
+	for soldier: SimSoldier in view.sim.living(SimSoldier.BattleSide.PLAYER, 1):
+		soldier.cell = picket.cell + Vector2i(-4, 0) + Vector2i(0, soldier.id - 2)
+	view.handle_input(_key(KEY_C))
+	view.toggle_pause()
+	view.advance(0.1)
+	view._process(0.0)
+	assert_true(view.sim.appeal_in_progress())
+	assert_string_contains(view.banner_text(), "Team 1 calls out")
+	assert_string_contains(view.hud_text(), "calling out")
+
+
+func test_the_debug_overlay_shows_the_chance_an_appeal_would_work() -> void:
+	view.handle_input(_key(KEY_O))
+	view._process(0.0)
+	assert_string_contains(view.debug_text(), "Appeal: earshot 6 cells; chance now 2%")

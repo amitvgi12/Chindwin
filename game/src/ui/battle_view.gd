@@ -40,6 +40,9 @@ const COLOUR_RAIN_HAZE: Color = Color(0.45, 0.55, 0.65, 1.0)
 const COLOUR_SLOPE_STROKE: Color = Color(0.0, 0.0, 0.0, 0.22)
 const COLOUR_CACHE: Color = Color("c9a227")
 const COLOUR_NO_ROUNDS: Color = Color("ff3b30")
+const COLOUR_VOICE: Color = Color(1.0, 1.0, 1.0, 0.7)
+## How long a message such as the answer to an appeal stays on screen.
+const MESSAGE_SECONDS: float = 4.0
 
 # Soldiers. The palette stays distinct for colour-blind players, and shape
 # differs too: player soldiers are circles, enemy soldiers are diamonds.
@@ -78,6 +81,9 @@ var _tick_accumulator: float = 0.0
 var _rain_clock: float = 0.0
 var _events_drawn: int = 0
 var _tracers: Array[Tracer] = []
+## A short message across the top, and how long it has left.
+var _message: String = ""
+var _message_seconds: float = 0.0
 
 @onready var _hud_text: Label = $Hud/Panel/Margin/Text
 @onready var _paused_banner: Label = $Hud/Banner
@@ -144,6 +150,8 @@ func restart() -> void:
 	_rain_clock = 0.0
 	_events_drawn = 0
 	_tracers.clear()
+	_message = ""
+	_message_seconds = 0.0
 	_refresh_hud()
 	queue_redraw()
 
@@ -154,6 +162,7 @@ func advance(delta: float) -> void:
 		return
 	_rain_clock += delta
 	_age_tracers(delta)
+	_message_seconds = maxf(0.0, _message_seconds - delta)
 	var tick_seconds: float = 1.0 / sim.rules.ticks_per_second
 	_tick_accumulator += delta
 	var steps: int = 0
@@ -178,6 +187,8 @@ func handle_input(event: InputEvent) -> void:
 		toggle_fire_for_selected_team()
 	elif event.is_action_pressed(InputActions.TOGGLE_GATHER):
 		toggle_gather_for_selected_team()
+	elif event.is_action_pressed(InputActions.CALL_OUT):
+		call_out_with_selected_team()
 	elif event.is_action_pressed(InputActions.FALL_BACK):
 		order_selected_team_to_fall_back()
 	elif event.is_action_pressed(InputActions.HELP):
@@ -265,6 +276,26 @@ func toggle_fire_for_selected_team() -> void:
 	var may_fire: bool = not team_is_firing(selected_team)
 	if sim.order_fire(selected_team, may_fire):
 		_team_fire[selected_team] = may_fire
+
+
+## Order the selected team to call out to the nearest group within earshot.
+## Says so on screen when there is nobody to call to.
+func call_out_with_selected_team() -> bool:
+	if sim.order_appeal(selected_team):
+		return true
+	show_message(tr("MSG_APPEAL_NOBODY"))
+	return false
+
+
+## Show a short message across the top for a few seconds.
+func show_message(text: String) -> void:
+	_message = text
+	_message_seconds = MESSAGE_SECONDS
+
+
+## The message across the top, or "" when there is none.
+func message_text() -> String:
+	return _message if _message_seconds > 0.0 else ""
 
 
 ## Switch the selected team between gathering rounds and not.
@@ -355,6 +386,10 @@ func _refresh_hud() -> void:
 ## says when the game is paused.
 func _refresh_banner() -> void:
 	if sim.outcome() == Simulation.Outcome.IN_PROGRESS:
+		if not message_text().is_empty():
+			_paused_banner.text = message_text()
+			_paused_banner.visible = true
+			return
 		_paused_banner.text = tr("HUD_PAUSED_BANNER")
 		_paused_banner.visible = paused
 		return
@@ -404,6 +439,7 @@ func debrief_text() -> String:
 					{
 						"fell": sim.casualty_count(enemy),
 						"withdrew": sim.withdrawn_count(enemy),
+						"came": sim.came_over_count(enemy),
 						"holding": sim.in_fight_count(enemy),
 					}
 				)
@@ -429,7 +465,9 @@ func _team_line(team_id: int) -> String:
 	if fit == 0:
 		return tr("HUD_TEAM_GONE").format({"team": team_id})
 	var fire_key: String = "HUD_FIRE_ON" if team_is_firing(team_id) else "HUD_FIRE_OFF"
-	if team_is_gathering(team_id):
+	if sim.appeal_caller_team() == team_id:
+		fire_key = "HUD_CALLING_OUT"
+	elif team_is_gathering(team_id):
 		fire_key = "HUD_GATHER_ON"
 	elif sim.team_rounds(player, team_id) == 0:
 		fire_key = "HUD_NO_ROUNDS"
@@ -451,6 +489,22 @@ func _refresh_debug_text() -> void:
 	var lines: PackedStringArray = PackedStringArray()
 	lines.append(tr("DEBUG_TITLE").format({"seed": DEFAULT_SEED, "tick": sim.tick}))
 	lines.append(tr("DEBUG_LEGEND"))
+	for team_id: int in sim.team_ids(SimSoldier.BattleSide.ENEMY):
+		(
+			lines
+			. append(
+				(
+					tr("DEBUG_APPEAL")
+					. format(
+						{
+							"range": sim.appeal_range_cells(),
+							"chance": sim.appeal_chance_percent(team_id),
+							"team": team_id,
+						}
+					)
+				)
+			)
+		)
 	lines.append(tr("DEBUG_LOG_HEADING"))
 	if sim.ai_log.is_empty():
 		lines.append(tr("DEBUG_LOG_EMPTY"))
@@ -469,6 +523,7 @@ func _collect_new_tracers() -> void:
 	while _events_drawn < sim.events.size():
 		var event: SimEvent = sim.events[_events_drawn]
 		_events_drawn += 1
+		_message_for(event)
 		var hit: bool = event.kind == SimEvent.Kind.SHOT_HIT
 		if not hit and event.kind != SimEvent.Kind.SHOT_MISSED:
 			continue
@@ -480,6 +535,15 @@ func _collect_new_tracers() -> void:
 		tracer.by_player = shooter.side == SimSoldier.BattleSide.PLAYER
 		tracer.seconds_left = TRACER_SECONDS
 		_tracers.append(tracer)
+
+
+func _message_for(event: SimEvent) -> void:
+	if event.kind == SimEvent.Kind.APPEAL_STARTED:
+		show_message(tr("MSG_APPEAL_STARTED").format({"team": event.actor_id}))
+	elif event.kind == SimEvent.Kind.APPEAL_ACCEPTED:
+		show_message(tr("MSG_APPEAL_ACCEPTED"))
+	elif event.kind == SimEvent.Kind.APPEAL_REFUSED:
+		show_message(tr("MSG_APPEAL_REFUSED"))
 
 
 func _age_tracers(delta: float) -> void:
@@ -645,6 +709,11 @@ func _draw_soldier(soldier: SimSoldier) -> void:
 			Color.BLACK
 		)
 	_draw_suppression_meter(soldier, centre)
+	if soldier.calling_out:
+		# Two short arcs ahead of him: his voice carrying across.
+		for ring: int in 2:
+			var radius: float = 17.0 + ring * 5.0
+			draw_arc(centre, radius, -0.6, 0.6, 8, COLOUR_VOICE, 1.5)
 	if soldier.side == SimSoldier.BattleSide.PLAYER and soldier.rounds == 0:
 		var where: Vector2 = centre + Vector2(9, 15)
 		var font: Font = ThemeDB.fallback_font

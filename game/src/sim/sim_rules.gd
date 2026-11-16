@@ -55,3 +55,20 @@ extends Resource
 @export var gather_ticks_per_round: int = 5
 ## The most rounds one man can carry.
 @export var max_rounds_carried: int = 40
+
+@export_group("Appeals")
+## How far a shouted appeal carries in still air, in cells. Weather can cut it.
+@export var appeal_range_cells: int = 8
+## How long a team spends calling out before the answer comes, in ticks.
+@export var appeal_ticks: int = 50
+## Chance from 0 to 100 that an appeal works on men who are neither pinned nor
+## have lost anyone. Keep it low: appeals were "largely unsuccessful" (S1 p. 43).
+@export var appeal_base_percent: int = 2
+## Added in proportion to the share of the group that is pinned or broken.
+@export var appeal_pinned_percent: int = 20
+## Added in proportion to the share of the group lost (fallen or gone).
+@export var appeal_losses_percent: int = 20
+## The chance never goes above this.
+@export var appeal_max_percent: int = 40
+## Suppression each man of the group sheds when he refuses: he takes heart.
+@export var appeal_refusal_relief: int = 30

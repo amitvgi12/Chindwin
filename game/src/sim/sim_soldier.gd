@@ -44,6 +44,10 @@ var broken: bool = false
 var falling_back: bool = false
 ## True once he has left the fight unhurt. He takes no further part.
 var withdrawn: bool = false
+## True when he left the fight by coming over in answer to an appeal.
+var came_over: bool = false
+## True while his team is calling out to the enemy. He does not fire.
+var calling_out: bool = false
 
 
 ## Still taking part: neither a casualty nor withdrawn.

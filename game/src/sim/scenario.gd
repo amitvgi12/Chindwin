@@ -50,6 +50,9 @@ var soldiers: Array[SoldierSpec] = []
 ## has_enemy_fallback is true.
 var enemy_fallback: Vector2i = Vector2i.ZERO
 var has_enemy_fallback: bool = false
+## Enemy teams made up of Indian soldiers, who can be called on to come over.
+## Not every unit opposite the INA was Indian, so this is set per scenario.
+var appealable_enemy_teams: Array[int] = []
 ## The mission is lost when fewer than this many of the player's men are fit.
 var section_broken_below: int = 1
 ## Problems found while loading, in plain words. Empty means the scenario is usable.
@@ -92,6 +95,8 @@ static func from_json_text(text: String) -> Scenario:
 		scenario.section_broken_below = _as_int(
 			data.get("section_broken_below"), "section_broken_below", scenario.errors
 		)
+	if data.has("appealable_enemy_teams"):
+		scenario._read_appealable(data.get("appealable_enemy_teams"))
 	if data.has("enemy_fallback"):
 		scenario._read_enemy_fallback(data.get("enemy_fallback"))
 	return scenario
@@ -117,6 +122,14 @@ func missing_weather(weathers: Dictionary[String, WeatherDef]) -> Array[String]:
 		if not weathers.has(change.weather_id) and not missing.has(change.weather_id):
 			missing.append(change.weather_id)
 	return missing
+
+
+func _read_appealable(value: Variant) -> void:
+	if not value is Array:
+		errors.append("appealable_enemy_teams must be a list")
+		return
+	for entry: Variant in value as Array:
+		appealable_enemy_teams.append(_as_int(entry, "appealable_enemy_teams entry", errors))
 
 
 func _read_caches(value: Variant) -> void:

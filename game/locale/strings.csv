@@ -10,7 +10,7 @@ HUD_TEAM,"Team {team}: {fit} of {total} fit, {pinned} pinned, {rounds} rounds, {
 HUD_FIRE_ON,firing
 HUD_FIRE_OFF,holding fire
 HUD_ENEMY,"Enemy picket: {fit} of {total}, {pinned} pinned, {withdrew} withdrew"
-HUD_CONTROLS,"Space: pause   1, 2: team   Right-click: move   Shift + right-click: waypoint   F: hold fire   G: gather   B: fall back   R: restart   H: help   O: overlay"
+HUD_CONTROLS,"Space: pause   1, 2: team   Right-click: move   Shift + right-click: waypoint   F: hold fire   G: gather   C: call out   B: fall back   R: restart   H: help   O: overlay"
 HUD_PAUSED_BANNER,"PAUSED. Give orders, then press Space."
 BRIEFING_1,Late June 1944. The hills south of the Palel-Tamu road.
 BRIEFING_2,In early May the brigade attacked the airfield at Palel and was thrown back.
@@ -51,7 +51,7 @@ DEBRIEF_WITHDREW,You broke off and brought your men back.
 DEBRIEF_SECTION_BROKEN,Your section can no longer fight.
 DEBRIEF_SECTION,"Your section: {fit} of {total} fit, {down} down."
 DEBRIEF_ROUNDS,Rounds: {left} left of {start}.
-DEBRIEF_ENEMY,"The picket: {fell} down, {withdrew} got away, {holding} still holding."
+DEBRIEF_ENEMY,"The picket: {fell} down, {withdrew} got away, {came} came over, {holding} still holding."
 DEBRIEF_TIME,Time: {time}.   Press R to go again.
 WEATHER_DRY,Dry
 WEATHER_RAIN,Rain
@@ -60,9 +60,16 @@ HUD_WEATHER,{weather}: sight {sight}
 CONTROLS_MARK_7,"Ground marked with short strokes is a slope. It is slower to cross, and slower still when wet."
 CONTROLS_MARK_8,"The weather changes. Heavy rain cuts how far anyone can see and shoot, and makes rifles stop."
 HUD_ENDED,ENDED
-CONTROLS_KEY_8,R starts again. H shows this page. O shows the debug overlay.
+CONTROLS_KEY_8,"C makes the selected team call out in Hindustani to the nearest group of Indian soldiers within earshot, asking them to come over. It takes five seconds and the team does not fire meanwhile. Each group can be called to once. It usually fails, and then they fight harder. It is likelier against men who are pinned or have lost comrades. Rain drowns voices."
 CONTROLS_MARK_9,"A small box with a number is ammunition on the ground: a supply box, or what a man was carrying when he fell."
 HUD_GATHER_ON,gathering
 HUD_NO_ROUNDS,no rounds left
 HUD_HINT_NO_ROUNDS,Your section has no rounds left. G gathers from a box or a fallen man beside you. B falls back.
 CONTROLS_MARK_10,A small red 0 beside a man means he has no rounds left.
+CONTROLS_KEY_9,R starts again. H shows this page. O shows the debug overlay.
+HUD_CALLING_OUT,calling out
+MSG_APPEAL_STARTED,Team {team} calls out to the picket to come over...
+MSG_APPEAL_ACCEPTED,The picket lays down its arms and comes over.
+MSG_APPEAL_REFUSED,"The picket refuses, and opens fire."
+MSG_APPEAL_NOBODY,Nobody within earshot who can be called to.
+DEBUG_APPEAL,Appeal: earshot {range} cells; chance now {chance}% for picket {team}.

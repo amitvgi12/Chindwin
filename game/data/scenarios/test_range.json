@@ -30,6 +30,7 @@
   ],
   "enemy_fallback": [38, 9],
   "section_broken_below": 4,
+  "appealable_enemy_teams": [1],
   "soldiers": [
     {"side": "player", "team": 1, "cell": [3, 8], "weapon": "rifle", "rounds": 20},
     {"side": "player", "team": 1, "cell": [3, 9], "weapon": "rifle", "rounds": 20},

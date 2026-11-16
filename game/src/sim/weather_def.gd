@@ -15,6 +15,8 @@ extends Resource
 @export var stoppage_chance_percent: int = 0
 ## Ticks a man needs to clear a stoppage before he can try again.
 @export var stoppage_clear_ticks: int = 30
+## A shouted appeal carries no further than this. Rain drowns voices.
+@export var voice_range_cells: int = 99
 
 @export_group("Look (used by the view only)")
 ## Number of rain streaks drawn. 0 for none.

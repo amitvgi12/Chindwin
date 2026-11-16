@@ -22,6 +22,15 @@ static func rules() -> SimRules:
 	result.suppression_splash = 0
 	result.gather_ticks_per_round = 5
 	result.max_rounds_carried = 12
+	# Appeals: heard 8 cells off, answered after 10 ticks, never work unless a
+	# test raises the chance.
+	result.appeal_range_cells = 8
+	result.appeal_ticks = 10
+	result.appeal_base_percent = 0
+	result.appeal_pinned_percent = 0
+	result.appeal_losses_percent = 0
+	result.appeal_max_percent = 100
+	result.appeal_refusal_relief = 30
 	return result
 
 

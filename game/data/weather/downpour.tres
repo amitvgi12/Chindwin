@@ -9,5 +9,6 @@ sight_range_cells = 8
 slope_move_percent = 240
 stoppage_chance_percent = 5
 stoppage_clear_ticks = 20
+voice_range_cells = 3
 rain_streaks = 420
 haze_percent = 26

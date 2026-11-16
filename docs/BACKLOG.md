@@ -10,6 +10,7 @@ L is a week or more of sessions.
 | # | Task | Size |
 |---|---|---|
 | 1 | `git push` and confirm CI stays green. | S |
+| 1a | Try the appeal: pin the picket from the middle bank, then send a team within six cells (rain) and press `C`. Say whether 22% against a fully pinned picket feels right. | S |
 | 2 | Send the Gate 1 tallies if you have them, or at least the worst moment and whether covering fire felt worth the rounds. | S |
 | 3 | Find a library or loan copy of Shah Nawaz Khan's memoir, Fay's *The Forgotten Army* or Toye's *The Springing Tiger* (pp. 100-1 is S1's source for the one successful appeal). | M |
 
@@ -22,8 +23,8 @@ Gate 2: one complete grey-box mission, start to finish, twenty minutes or more.
 | 1 | Mission outcomes and a debrief: objective taken, withdrew, section broken. | S | Done 16 Nov 2026 |
 | 2 | Weather as a rule: states that change during a mission and affect sight, movement on slopes and weapon stoppages. | M | Done 16 Nov 2026 |
 | 3 | Scavenging: ammunition boxes, rounds left by the fallen, and a gather order that costs time and firepower. | M | Done 16 Nov 2026 |
-| 4 | One appeal encounter: a team calls out in Hindustani to an enemy group; usually fails and draws fire; likelier against a small, pinned, cut-off group. Method second-hand (TO_VERIFY section 9); tagged COMPOSITE. | M | Next |
-| 5 | Condition: hunger and fatigue as the slow half of will to fight. | M | |
+| 4 | One appeal encounter: a team calls out in Hindustani to an enemy group; usually fails and draws fire; likelier against a small, pinned, cut-off group. Method second-hand (TO_VERIFY section 9); tagged COMPOSITE. | M | Done 16 Nov 2026 |
+| 5 | Condition: hunger, fatigue and food as the slow half of will to fight, and the player's own men walking away (pillar 4, GDD section 4). | M | Next |
 | 6 | Save and load. | M | |
 | 7 | A mission-length map: an approach, a picket, then the road-block. | L | |
 | 8 | Gate 2 playtest sheet. | S | |
@@ -68,7 +69,7 @@ Carried over from Phase 1:
 | 1 | Strength, leader and weapons of an INA guerrilla-regiment section in May 1944. Decides pillar 1. | M |
 | 2 | Resolve the Palel airfield raid conflict between Sundaram and Fay. | S |
 | 3 | Identify the units opposite the Gandhi Brigade from mid-May to late June 1944. | M |
-| 4 | Find how appeals to Indian troops were made on the Palel front. | M |
+| 4 | Find how appeals to Indian troops were made on the Palel front. Partly answered for Kohima and Jessami (TO_VERIFY section 9); nothing found for Palel. | M |
 | 5 | Find a 1944 map of the Khanjol and Mitlong Khunou area and establish its copyright status. | M |
 | 6 | Find what happened to villages in the Gandhi Brigade's area. | M |
 | 7 | Write `docs/history/mission-01.md` once items 1 to 4 have a checked source. | S |

@@ -15,6 +15,7 @@ const KEY_LINES: Array[String] = [
 	"CONTROLS_KEY_6",
 	"CONTROLS_KEY_7",
 	"CONTROLS_KEY_8",
+	"CONTROLS_KEY_9",
 ]
 const MARK_LINES: Array[String] = [
 	"CONTROLS_MARK_1",

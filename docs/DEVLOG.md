@@ -2,6 +2,55 @@
 
 What was done, what was decided, and why. Newest session first.
 
+## 2026-11-16, session 2 continued: the appeal encounter
+
+### Done
+
+- **Call out** (`C`). The selected team calls out in Hindustani to the nearest enemy
+  group within earshot that the scenario marks as Indian soldiers, asking them to come
+  over. It takes five seconds; the callers do not fire meanwhile. Each group can be
+  called to once. Moving the callers, or all of them being pinned, ends the call
+  without using up the try. Only one call at a time.
+- **The answer.** One roll when the call ends. Chance: 2% base, plus up to 20% for the
+  share of the group pinned or broken, plus up to 20% for the share it has lost, never
+  above 40%. Fresh picket 2%; all four pinned 22%; three pinned and one lost 27%.
+- **On refusal** each man of the group sheds 30 suppression, stops being broken, and
+  fires at once. The callers have spent five seconds not firing.
+- **On acceptance** the group leaves the fight, leaves its rounds on the ground, and
+  counts as "came over" in the debrief, apart from men who fell or got away.
+- **Earshot** is 8 cells, cut by weather: 6 in rain, 3 in a downpour.
+- **Which groups can be called to** is set per scenario (`appealable_enemy_teams`),
+  because not every unit opposite the INA was Indian.
+- **On screen:** a message across the top for the call and its answer; "calling out"
+  in the status strip; two short arcs at each caller; the current chance in the debug
+  overlay; a line on the "how to play" page.
+- 223 tests pass. `make check` is clean. Gate 1 numbers unchanged: no dice are rolled
+  unless someone calls out, so the recorded battle is identical.
+
+### History tag
+
+COMPOSITE. The method, a shouted appeal in Hindustani or Urdu to Indian troops, is
+supported second-hand (S5, Kohima and Jessami, 1944). That appeals usually failed and
+were met with fire is S1 p. 43. That they were likelier to work on a small, pressed
+group is consistent with S1 p. 43's one named success but is stated by no source. The
+in-game words of the appeal are not written out, so no quotation is put in anyone's
+mouth.
+
+### Not verified
+
+- Whether the chances feel right. They are first guesses in `prototype_rules.tres`.
+- Whether players use it at all, or only once out of curiosity.
+
+### Decisions and why
+
+| Decision | Why |
+|---|---|
+| One try per group | A second shout to men who have just refused should not be a fresh chance. It also makes the timing a decision. |
+| Refusal puts heart back into the group | "More often than not" Indian troops opened fire on the parties (S1 p. 43). A failed call should cost more than five seconds. |
+| The chance is capped at 40% | Appeals were "largely unsuccessful". Even a pinned, bloodied group usually says no. |
+| No loudspeaker, leaflet or pass | None of these was found in a source for this front. See TO_VERIFY section 9. |
+| The appeal's words are not shown | Only the fact of calling out is sourced. Inventing the words would put invented dialogue in a historical setting. |
+
 ## 2026-11-16, session 2 continued: three screenshots, research notes, and the flank
 
 ### Reported by Amit
