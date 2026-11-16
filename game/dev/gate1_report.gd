@@ -19,6 +19,7 @@ func _initialize() -> void:
 		Gate1Plans.Plan.PIN_THEN_FLANK: "PIN THEN FLANK",
 		Gate1Plans.Plan.RUSH_THE_BANK: "RUSH THE BANK",
 		Gate1Plans.Plan.FLANK_WITHOUT_FIRE: "FLANK WITHOUT COVERING FIRE (for comparison)",
+		Gate1Plans.Plan.DOUBLE_FLANK: "DOUBLE FLANK, NOBODY PINNING (for comparison)",
 	}
 	for plan: Gate1Plans.Plan in names:
 		var name: String = names[plan]

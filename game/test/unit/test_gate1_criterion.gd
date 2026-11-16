@@ -33,3 +33,16 @@ func test_covering_fire_makes_the_flank_no_worse() -> void:
 	var with_fire: int = Gate1Plans.successes(Gate1Plans.Plan.PIN_THEN_FLANK, RUNS)
 	var without: int = Gate1Plans.successes(Gate1Plans.Plan.FLANK_WITHOUT_FIRE, RUNS)
 	assert_gte(with_fire, without, "covering fire: %d, without: %d" % [with_fire, without])
+
+
+## Pillar 1 says fire fixes and movement wins. If going round both sides at
+## once without pinning costs about as little as pinning first, the game is
+## really saying "just move". Added after Amit won that way in 28 seconds.
+func test_pinning_first_keeps_more_men_than_a_double_flank_without_it() -> void:
+	var pinned_first: float = Gate1Plans.average_fit(Gate1Plans.Plan.PIN_THEN_FLANK, RUNS)
+	var no_pinning: float = Gate1Plans.average_fit(Gate1Plans.Plan.DOUBLE_FLANK, RUNS)
+	assert_gte(
+		pinned_first,
+		no_pinning + 1.0,
+		"men fit: pin first %.1f, double flank %.1f" % [pinned_first, no_pinning]
+	)

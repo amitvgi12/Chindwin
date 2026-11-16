@@ -1,6 +1,6 @@
 # TO_VERIFY: historical claims awaiting confirmation
 
-Last updated: 2026-11-15 (Phase 0).
+Last updated: 2026-11-16.
 
 Nothing in this file may appear in game text. A claim leaves this file only when it
 moves into a mission file in `docs/history/` with a source that Amit has checked.
@@ -32,6 +32,15 @@ moves into a mission file in `docs/history/` with a source that Amit has checked
   Read through a summarising tool. Its footnotes cite Fay 1993 by page. **Fay has not
   been seen.** Page numbers attributed to Fay below are Wikipedia's, not ours.
 - **S4.** Web search summaries (news sites, Wikipedia mirrors). Lowest confidence.
+- **S5.** K. Puroh, "Subhas Bose and the Battle of Kohima" (part A), *Eastern Mirror*
+  (Nagaland), 19 May 2017:
+  <https://easternmirrornagaland.com/subhas-bose-and-the-battle-of-kohima-a>. Read
+  through a summarising tool. A newspaper article with no formal citations; it names
+  British sources in passing (C.R. Pawsey's tour diary, a Time report).
+- **S6.** Herbert A. Friedman, "Axis Propaganda Against Indian Troops", psywarrior.com:
+  <https://www.psywarrior.com/AxisPropIndia.html>. A collector's catalogue of leaflets,
+  read through a summarising tool, first 200,000 of 224,000 characters. Attributes
+  claims to Toye, Streatfield, Cruickshank, Lebra and others; page numbers not given.
 
 ## 1. Claims made in the kickoff brief
 
@@ -141,6 +150,43 @@ as written. See `docs/DEVLOG.md` for why the notes were not adopted.
 | A "pre-monsoon squall" on 14 April | Not checked. Monsoon onset is itself unsettled (section 1, row 8). | OPEN |
 | Squad weapons: Vickers-Berthier, Sten, Thompson, Arisaka Type 99, scoped Lee-Enfield, Type 99 magnetic mines, No. 77 smoke grenades | Nothing found on any of these in INA hands. S1 p. 43 gives Arakan raiding parties rifles, pistols and a few grenades. | OPEN |
 | "Scans of actual 1944 INA field diaries" and museum photographs | The project holds none, and has no rights to any. | Not available |
+
+## 9. How appeals to Indian troops were made: Amit's research notes (16 November 2026)
+
+Amit pasted research notes on how the INA appealed to British Indian troops. They name
+real sources but give no page numbers, and they refer to "Captain Devraj" from the
+earlier vertical-slice notes. They are treated as leads, not as a source. Each claim
+was checked on 16 November 2026.
+
+| Claim in the notes | What was found | Status |
+|---|---|---|
+| The Bahadur Group did field propaganda as well as intelligence. | S1 p. 42-43: Bahadur 'A' Company was "charged with trying to cause confusion among the enemy", and raiding parties "would try to win them over". A search summary also describes Bahadur groups as "field propaganda units" for the three divisions. | READ (S1) |
+| The Japanese Hikari Kikan was the liaison agency to the INA. | Supported by several encyclopedia entries (S4). Not seen in a book. | SECOND-HAND |
+| The British formed "Josh" groups in Indian units to counter INA propaganda. | Supported by search summaries citing Sanjoy Bhattacharya, *Modern Asian Studies*, and Wikipedia's "Jiffs" article (S4). | SECOND-HAND |
+| Loudspeaker appeals were made to Indian troops at night. | S5: at Kohima on the night of 7 April 1944 a loudspeaker near Treasury Hill carried an appeal in Urdu, "probably" by an INA man, "Soldiers of India, the Japanese army had surrounded you. Bring your rifle and come over to us." At Jessami on 29 March an appeal was made "in English and Hindustani"; "there was no response". A search summary of P.R. Pillay, "The Indian National Army in the Imphal offensive", says "regular loudspeaker exhortations were made to Indian troops to desert"; the paper itself could not be opened. | SECOND-HAND (one newspaper, one unread paper) |
+| Gramophones in no-man's-land played Indian folk songs before the appeals. | Nothing found. The only gramophone reference found was British broadcasts aimed at Japanese troops. | NOT FOUND |
+| Opposing Subedars and Havildars were called by name, using regimental familiarity. | Nothing found. Plausible, since most INA officers were former Indian Army men, but plausible is not a source. | NOT FOUND |
+| Leaflets were left in split bamboo along trails. | Nothing found. | NOT FOUND |
+| Bose signed "safe conduct passes" for Indian soldiers who crossed over. | **Contradicted as stated.** The safe-conduct passes in S6 are **British**, aimed at INA men to bring them back, plus one Japanese leaflet promising prisoner-of-war treatment to whoever carried it. S6 quotes Streatfield: in autumn 1944, "3 out of 4" INA men who surrendered in Burma said British leaflets were the reason. | CONTRADICTED |
+| INA men wore British Indian uniform to bluff sentries. | Nothing found. | NOT FOUND |
+| A war diary and "Moirang Dispatches" by Shaukat Malik exist. | No published diary or dispatches by Malik were found. Sources describe his role at Moirang, not his own writings. | NOT FOUND |
+| Persuasion worked mainly on isolated or cut-off posts, not on units with British officers or Gurkhas present. | Consistent with S1 p. 43: attempts "largely unsuccessful"; the one success named was a platoon of 5th Gwalior Rifles guarding the approaches to Taung Bazaar; "more often than not" Indian troops opened fire. No source found states the isolation rule as such. | PARTLY SUPPORTED (S1) |
+
+**What the game can use now**, tagged COMPOSITE:
+
+- A team close enough to be heard calls out in Hindustani to an enemy group.
+- It usually fails, and the callers draw fire (S1 p. 43; S5).
+- It is likelier to work on a small group that is pinned, has lost men, or is cut off
+  (S1 p. 43's single success; Amit's notes; not stated as a rule anywhere).
+
+**What the game cannot use yet:** loudspeakers as equipment the section carries,
+leaflets, safe-conduct passes signed by Bose, gramophones, disguise, calling NCOs by
+name. Each needs a source first.
+
+**The record points the other way too.** British leaflets, passes and broadcasting
+units aimed at INA men, and INA desertion (S1 p. 49: 116 from the Gandhi Brigade by
+30 June 1944), are better attested than INA appeals succeeding. That supports pillar 4
+as reworded at Gate 0: the pull runs both ways, mostly against the player.
 
 ## 8. Books needed for page-level citations
 

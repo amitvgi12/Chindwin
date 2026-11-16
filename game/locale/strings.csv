@@ -63,3 +63,6 @@ HUD_ENDED,ENDED
 CONTROLS_KEY_8,R starts again. H shows this page. O shows the debug overlay.
 CONTROLS_MARK_9,"A small box with a number is ammunition on the ground: a supply box, or what a man was carrying when he fell."
 HUD_GATHER_ON,gathering
+HUD_NO_ROUNDS,no rounds left
+HUD_HINT_NO_ROUNDS,Your section has no rounds left. G gathers from a box or a fallen man beside you. B falls back.
+CONTROLS_MARK_10,A small red 0 beside a man means he has no rounds left.

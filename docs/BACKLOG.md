@@ -11,7 +11,7 @@ L is a week or more of sessions.
 |---|---|---|
 | 1 | `git push` and confirm CI stays green. | S |
 | 2 | Send the Gate 1 tallies if you have them, or at least the worst moment and whether covering fire felt worth the rounds. | S |
-| 3 | Find a library or loan copy of Shah Nawaz Khan's memoir or Fay's *The Forgotten Army*. The appeal encounter needs a source for how appeals were made. | M |
+| 3 | Find a library or loan copy of Shah Nawaz Khan's memoir, Fay's *The Forgotten Army* or Toye's *The Springing Tiger* (pp. 100-1 is S1's source for the one successful appeal). | M |
 
 ## Phase 2: the systems that make it this game
 
@@ -22,8 +22,8 @@ Gate 2: one complete grey-box mission, start to finish, twenty minutes or more.
 | 1 | Mission outcomes and a debrief: objective taken, withdrew, section broken. | S | Done 16 Nov 2026 |
 | 2 | Weather as a rule: states that change during a mission and affect sight, movement on slopes and weapon stoppages. | M | Done 16 Nov 2026 |
 | 3 | Scavenging: ammunition boxes, rounds left by the fallen, and a gather order that costs time and firepower. | M | Done 16 Nov 2026 |
-| 4 | Condition: hunger and fatigue as the slow half of will to fight. | M | Next |
-| 5 | One appeal encounter, with a real chance of failure. Blocked on a source for the method; until then it is labelled INVENTED. | M | |
+| 4 | One appeal encounter: a team calls out in Hindustani to an enemy group; usually fails and draws fire; likelier against a small, pinned, cut-off group. Method second-hand (TO_VERIFY section 9); tagged COMPOSITE. | M | Next |
+| 5 | Condition: hunger and fatigue as the slow half of will to fight. | M | |
 | 6 | Save and load. | M | |
 | 7 | A mission-length map: an approach, a picket, then the road-block. | L | |
 | 8 | Gate 2 playtest sheet. | S | |
@@ -34,7 +34,8 @@ Carried over from Phase 1:
 - The track is decoration. Walking on it is no faster.
 - The picket never moves to face a flank. It holds or it leaves.
 - A team falls back only to where it started, not to a place of your choosing.
-- Covering fire adds less than the flank itself does (98% against 86% success).
+- One team can run out of rounds covering a flank that stalls. In about one battle in
+  seven the attack then dies with nobody holding any rounds.
 - On the one-minute test range the weather barely matters: the downpour arrives after
   most fights are over. It needs the mission-length map to show what it does.
 - Routes take the quickest way with no regard for danger.

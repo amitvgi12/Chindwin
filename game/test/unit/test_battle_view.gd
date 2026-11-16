@@ -331,3 +331,22 @@ func test_restart_stops_any_gathering() -> void:
 
 func test_the_test_range_has_an_ammunition_box_in_the_open() -> void:
 	assert_eq(view.sim.rounds_on_the_ground(), 60)
+
+
+func test_a_team_with_no_rounds_says_so_instead_of_firing() -> void:
+	for soldier: SimSoldier in view.sim.living(SimSoldier.BattleSide.PLAYER, 1):
+		soldier.rounds = 0
+	view._process(0.0)
+	assert_string_contains(
+		view.hud_text(), "Team 1: 5 of 5 fit, 0 pinned, 0 rounds, no rounds left"
+	)
+	assert_string_contains(view.hud_text(), "Space: pause", "team 2 still has rounds")
+
+
+func test_when_the_whole_section_is_out_of_rounds_the_strip_says_what_to_do() -> void:
+	for soldier: SimSoldier in view.sim.soldiers:
+		if soldier.side == SimSoldier.BattleSide.PLAYER:
+			soldier.rounds = 0
+	view._process(0.0)
+	assert_string_contains(view.hud_text(), "G gathers")
+	assert_string_contains(view.hud_text(), "B falls back")

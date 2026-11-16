@@ -18,11 +18,19 @@ extends RefCounted
 ## is doing any work.
 ##
 ##   FLANK_WITHOUT_FIRE   as PIN_THEN_FLANK, but team 1 holds fire throughout
+##   DOUBLE_FLANK         both teams set off at once, one round each side, and
+##                        nobody pins the picket first
 ##
 ## An attack SUCCEEDS when, within the time limit, the picket has nobody left
 ## in the fight and at least six of the ten attackers are still fit.
 
-enum Plan { FRONTAL, PIN_THEN_FLANK, RUSH_THE_BANK, FLANK_WITHOUT_FIRE }
+enum Plan {
+	FRONTAL,
+	PIN_THEN_FLANK,
+	RUSH_THE_BANK,
+	FLANK_WITHOUT_FIRE,
+	DOUBLE_FLANK,
+}
 
 const TEST_RANGE: String = "res://data/scenarios/test_range.json"
 const RULES: String = "res://data/rules/prototype_rules.tres"
@@ -69,6 +77,14 @@ static func play(plan: Plan, seed_value: int) -> Result:
 	if plan == Plan.FRONTAL:
 		sim.order_move(1, Vector2i(30, 8))
 		sim.order_move(2, Vector2i(30, 11))
+	elif plan == Plan.DOUBLE_FLANK:
+		sim.order_move(1, Vector2i(20, 1))
+		sim.order_move(2, Vector2i(20, 18))
+		sim.step()
+		sim.order_move(1, Vector2i(33, 1), true)
+		sim.order_move(1, Vector2i(35, 4), true)
+		sim.order_move(2, Vector2i(33, 18), true)
+		sim.order_move(2, Vector2i(35, 15), true)
 	elif plan == Plan.RUSH_THE_BANK:
 		sim.order_move(1, Vector2i(32, 8))
 		sim.order_move(2, Vector2i(32, 11))
@@ -101,6 +117,14 @@ static func play(plan: Plan, seed_value: int) -> Result:
 		sim.in_fight_count(enemy) == 0 and result.attackers_fit >= ATTACKERS_NEEDED_FIT
 	)
 	return result
+
+
+## Average number of attackers still fit at the end, over seeds 1 to `runs`.
+static func average_fit(plan: Plan, runs: int) -> float:
+	var total: int = 0
+	for seed_value: int in range(1, runs + 1):
+		total += play(plan, seed_value).attackers_fit
+	return float(total) / runs
 
 
 ## How many of the seeds 1 to `runs` end in success for a plan.

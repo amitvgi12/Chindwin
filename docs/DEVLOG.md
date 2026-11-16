@@ -2,6 +2,91 @@
 
 What was done, what was decided, and why. Newest session first.
 
+## 2026-11-16, session 2 continued: three screenshots, research notes, and the flank
+
+### Reported by Amit
+
+Three screenshots, "ci green", and pasted research notes on how appeals were made. No
+comments on the screenshots, so what follows is read from the pictures.
+
+1. **Section broken at 1:37, in the downpour.** Team 1 had walked up in front of the
+   picket's bank; team 2 was gone. The picket untouched, 11 rounds left of 200.
+2. **The picket gone in 0:28, nine of ten men fit.** Team 1 round the north, team 2
+   round the south, nobody pinning from the middle. All four of the picket shot down.
+3. **3:15 and stuck.** Team 2 dead in the south; team 1 had four men with no rounds left,
+   still listed as "firing", the picket still holding, and the 60-round box untouched.
+
+### What the second screenshot showed: the game said "just go round"
+
+A new comparison plan, both teams flanking at once with nobody pinning, succeeded 199
+times in 200 and kept 8.3 of 10 men fit. Pinning first kept 9.0. Covering fire saved
+less than one man, which contradicts pillar 1.
+
+The cause was the map. The jungle strips hid each flank route until four or five cells
+from the picket. They were shortened from ten cells to five, so the last stretch of
+either flank crosses open slope in the picket's view, where only a pinned picket lets
+a team through.
+
+Two hundred battles per plan:
+
+| Plan | Before | After |
+|---|---|---|
+| Frontal, stopping in front | 0% | 0% |
+| Frontal rush to the bank | 12% | 12% |
+| Pin, then flank | 98%, 9.0 fit | 80%, 8.0 fit |
+| Flank, no covering fire | 86%, 7.4 fit | 66%, 6.1 fit |
+| Double flank, nobody pinning | 99%, 8.3 fit | 52%, 5.3 fit |
+
+A new test asserts that pinning first keeps at least one more man fit than the double
+flank, over the ten fixed battles. The cost: pin-then-flank itself fell from 98% to
+80%. The Gate 1 criterion asks for 70%.
+
+### What the third screenshot showed: nothing told you what to do with no rounds
+
+- A team with no rounds left says "no rounds left" instead of "firing".
+- A man with none has a small red 0 beside him.
+- When nobody in the section has a round left, the controls line becomes: "Your section
+  has no rounds left. G gathers from a box or a fallen man beside you. B falls back."
+
+### Tried and removed: slow fire
+
+The third screenshot and the battle listings showed covering fire burning a team's
+rounds in about a minute. A "slow fire" setting on `F` was built to keep the picket
+pinned for fewer rounds, then measured: switched on once the picket was pinned, it was
+worse on every count over 200 battles (140 against 161 successes, 6.9 against 8.0 men
+fit, 48 against 72 rounds left, 33 against 27 battles ending dry). Easing off lets the
+picket's heads come up while the flank is crossing, the fight drags on, and more rounds
+go in the end. Removed: the brief cuts features that serve no pillar.
+
+### The research notes
+
+Checked claim by claim; the full table is in `docs/history/TO_VERIFY.md` section 9. In
+short:
+
+- **Supported, second-hand:** loudspeaker appeals in Urdu and Hindustani at Kohima and
+  Jessami in 1944 (one Nagaland newspaper article, no citations); "Josh" groups; the
+  Hikari Kikan.
+- **Contradicted:** the safe-conduct passes on record are British passes for INA men,
+  not Bose's for Indian soldiers.
+- **Not found:** gramophones, leaflets in split bamboo, disguise in British uniform,
+  calling NCOs by name, and any published war diary by Shaukat Malik.
+
+What this unblocks: an appeal encounter where a team calls out to an enemy group,
+usually fails and draws fire, and is likelier to work on a small group that is pinned,
+has lost men, or is cut off. Tagged COMPOSITE. Moved up the backlog to next.
+
+### Verified
+
+- 208 tests pass; `make check` is clean.
+- The Gate 1 test passes on its ten fixed battles (pin-then-flank 9 of 10, frontal and
+  rush 0 of 10, pin-first 8.1 men fit against 5.7 for the double flank).
+
+### Not verified
+
+- How the longer open crossing feels: whether it reads as "the picket covers its
+  flanks" or as "flanking got harder for no reason".
+- Whether the red 0 is noticed in play.
+
 ## 2026-11-16, session 2 continued: a screenshot from Amit, and scavenging
 
 ### Reported by Amit

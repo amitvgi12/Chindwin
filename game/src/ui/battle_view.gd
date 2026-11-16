@@ -39,6 +39,7 @@ const COLOUR_RAIN: Color = Color(0.86, 0.9, 0.95, 0.2)
 const COLOUR_RAIN_HAZE: Color = Color(0.45, 0.55, 0.65, 1.0)
 const COLOUR_SLOPE_STROKE: Color = Color(0.0, 0.0, 0.0, 0.22)
 const COLOUR_CACHE: Color = Color("c9a227")
+const COLOUR_NO_ROUNDS: Color = Color("ff3b30")
 
 # Soldiers. The palette stays distinct for colour-blind players, and shape
 # differs too: player soldiers are circles, enemy soldiers are diamonds.
@@ -341,7 +342,12 @@ func _refresh_hud() -> void:
 	var lines: PackedStringArray = PackedStringArray()
 	lines.append("      ".join(PackedStringArray([title, status, enemy])))
 	lines.append("      ".join(strengths))
-	lines.append(tr("HUD_CONTROLS"))
+	# When nobody has a round left, the controls line gives way to what can be done.
+	var player: SimSoldier.BattleSide = SimSoldier.BattleSide.PLAYER
+	var stuck: bool = (
+		sim.outcome() == Simulation.Outcome.IN_PROGRESS and sim.rounds_left(player) == 0
+	)
+	lines.append(tr("HUD_HINT_NO_ROUNDS") if stuck else tr("HUD_CONTROLS"))
 	_hud_text.text = "\n".join(lines)
 
 
@@ -425,6 +431,8 @@ func _team_line(team_id: int) -> String:
 	var fire_key: String = "HUD_FIRE_ON" if team_is_firing(team_id) else "HUD_FIRE_OFF"
 	if team_is_gathering(team_id):
 		fire_key = "HUD_GATHER_ON"
+	elif sim.team_rounds(player, team_id) == 0:
+		fire_key = "HUD_NO_ROUNDS"
 	var values: Dictionary[String, Variant] = {
 		"team": team_id,
 		"fit": fit,
@@ -637,6 +645,11 @@ func _draw_soldier(soldier: SimSoldier) -> void:
 			Color.BLACK
 		)
 	_draw_suppression_meter(soldier, centre)
+	if soldier.side == SimSoldier.BattleSide.PLAYER and soldier.rounds == 0:
+		var where: Vector2 = centre + Vector2(9, 15)
+		var font: Font = ThemeDB.fallback_font
+		draw_string_outline(font, where, "0", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, 4, COLOUR_OUTLINE)
+		draw_string(font, where, "0", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, COLOUR_NO_ROUNDS)
 
 
 ## A bar over a man's head showing how much fire he is under. It fills from
