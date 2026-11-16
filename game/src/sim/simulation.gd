@@ -100,6 +100,10 @@ func _init(
 		soldier.start_cell = spec.cell
 		soldier.weapon = weapons.get(spec.weapon_id)
 		soldier.rounds = spec.rounds
+		var start: Scenario.StartingCondition = scenario.condition_for(spec.side)
+		soldier.hunger = start.hunger
+		soldier.fatigue = start.fatigue
+		soldier.suppression = condition_floor(soldier)
 		soldiers.append(soldier)
 		_rounds_at_start[spec.side] = _rounds_at_start.get(spec.side, 0) + spec.rounds
 	for cache_spec: Scenario.CacheSpec in scenario.caches:
@@ -249,6 +253,7 @@ func step() -> void:
 	_follow_weather_schedule()
 	_apply_pending_orders()
 	_fade_suppression()
+	_wear_condition()
 	_update_broken()
 	if rules.ai_think_ticks > 0 and tick % rules.ai_think_ticks == 0:
 		_picket_ai.think(self)
@@ -419,6 +424,16 @@ func is_pinned(soldier: SimSoldier) -> bool:
 	return soldier.in_fight() and soldier.suppression >= rules.pinned_threshold
 
 
+## The least suppression a man can have, given how hungry and tired he is.
+## Fire pushes him up from here, and when it stops he only recovers to here.
+func condition_floor(soldier: SimSoldier) -> int:
+	var floor_value: int = (
+		soldier.hunger * rules.hunger_floor_percent / 100
+		+ soldier.fatigue * rules.fatigue_floor_percent / 100
+	)
+	return clampi(floor_value, 0, rules.condition_floor_max)
+
+
 ## How many living members of a team are pinned.
 func pinned_count(side: SimSoldier.BattleSide, team_id: int) -> int:
 	var count: int = 0
@@ -513,6 +528,8 @@ func snapshot() -> String:
 			soldier.suppression,
 			1 if soldier.broken else 0,
 			1 if soldier.withdrawn else 0,
+			soldier.hunger,
+			soldier.fatigue,
 		]
 		parts.append("%d:%s" % [soldier.id, ",".join(fields.map(str))])
 	parts.append("ground=%d" % rounds_on_the_ground())
@@ -852,6 +869,26 @@ func _fade_suppression() -> void:
 	for soldier: SimSoldier in soldiers:
 		if soldier.suppression > 0:
 			soldier.suppression -= 1
+
+
+## Hunger creeps up for everyone. Walking tires a man; standing still rests
+## him. Then nobody's suppression is left below what his condition allows.
+## Counted on the shared tick, so no man carries a private clock.
+func _wear_condition() -> void:
+	var hungrier: bool = rules.hunger_rise_ticks > 0 and tick % rules.hunger_rise_ticks == 0
+	var tiring: bool = rules.fatigue_walk_ticks > 0 and tick % rules.fatigue_walk_ticks == 0
+	var resting: bool = rules.fatigue_rest_ticks > 0 and tick % rules.fatigue_rest_ticks == 0
+	for soldier: SimSoldier in soldiers:
+		if not soldier.in_fight():
+			continue
+		if hungrier:
+			soldier.hunger = mini(100, soldier.hunger + 1)
+		var walking: bool = soldier.is_moving() and (soldier.falling_back or not is_pinned(soldier))
+		if walking and tiring:
+			soldier.fatigue = mini(100, soldier.fatigue + 1)
+		elif not soldier.is_moving() and resting:
+			soldier.fatigue = maxi(0, soldier.fatigue - 1)
+		soldier.suppression = maxi(soldier.suppression, condition_floor(soldier))
 
 
 ## A man breaks at the broken level and stays broken until the pressure has

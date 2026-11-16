@@ -34,8 +34,14 @@ var told_to_gather: bool = false
 var gathering_now: bool = false
 ## Ticks spent on the round he is picking up.
 var gather_progress_ticks: int = 0
-## Pressure from incoming fire, 0 to 100. Fades when the firing stops.
+## Pressure from incoming fire, 0 to 100. Fades when the firing stops, but
+## never below what his condition allows (Simulation.condition_floor()).
 var suppression: int = 0
+## How hungry he is, 0 (fed) to 100 (starving). Rises slowly through a mission.
+var hunger: int = 0
+## How worn out he is, 0 (rested) to 100 (spent). Rises while he walks and
+## falls while he rests.
+var fatigue: int = 0
 ## True from the moment he breaks until the pressure has faded. He does not fire.
 var broken: bool = false
 ## True while he is going back: an enemy to the rear and out of the fight, one

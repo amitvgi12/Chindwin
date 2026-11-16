@@ -8,6 +8,7 @@ const RULES: String = "res://data/rules/prototype_rules.tres"
 ## State of the shipped test range after the scripted battle below, seed 1944.
 ## Each soldier reads
 ## id:x,y,alive,cells-left-to-walk,rounds-left,suppression,broken,withdrawn,
+## hunger,fatigue,
 ## and the line ends with the rounds lying on the ground.
 ## Recorded on macOS (Apple silicon). CI repeats it on Linux: if this test
 ## fails only there, the simulation is not portable and that must be fixed
@@ -15,11 +16,11 @@ const RULES: String = "res://data/rules/prototype_rules.tres"
 ## run the tests, copy the new value from the failure message, and say why
 ## in the commit.
 const GOLDEN_SNAPSHOT: String = (
-	"tick=601 weather=downpour 0:22,9,1,0,0,66,0,0 1:22,10,1,0,0,66,0,0 "
-	+ "2:21,9,1,0,0,66,0,0 3:20,8,0,0,0,0,0,0 4:21,10,1,0,0,66,0,0 "
-	+ "5:25,1,0,0,0,0,0,0 6:26,2,1,11,15,86,1,0 7:27,2,0,0,0,0,0,0 "
-	+ "8:25,1,0,0,0,0,0,0 9:28,0,0,0,0,0,0,0 10:34,8,1,0,0,17,0,0 "
-	+ "11:34,9,1,0,0,15,0,0 12:34,10,1,0,0,14,0,0 13:34,11,1,0,0,14,0,0 "
+	"tick=601 weather=downpour 0:22,9,1,0,0,66,0,0,1,0 1:22,10,1,0,0,66,0,0,1,0 "
+	+ "2:21,9,1,0,0,66,0,0,1,0 3:20,8,0,0,0,0,0,0,0,2 4:21,10,1,0,0,66,0,0,1,0 "
+	+ "5:25,1,0,0,0,0,0,0,0,5 6:26,2,1,11,15,86,1,0,1,5 7:27,2,0,0,0,0,0,0,0,5 "
+	+ "8:25,1,0,0,0,0,0,0,0,5 9:28,0,0,0,0,0,0,0,0,5 10:34,8,1,0,0,17,0,0,1,0 "
+	+ "11:34,9,1,0,0,15,0,0,1,0 12:34,10,1,0,0,14,0,0,1,0 13:34,11,1,0,0,14,0,0,1,0 "
 	+ "ground=157"
 )
 

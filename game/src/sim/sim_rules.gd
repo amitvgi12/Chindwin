@@ -50,6 +50,24 @@ extends Resource
 ## The enemy picket reconsiders what to do every this many ticks.
 @export var ai_think_ticks: int = 10
 
+@export_group("Condition")
+## Every man in the fight grows one point hungrier every this many ticks.
+## 0 turns hunger off.
+@export var hunger_rise_ticks: int = 600
+## A man who is walking grows one point more tired every this many ticks.
+## Slopes and rain slow him, so they tire him more. 0 turns fatigue off.
+@export var fatigue_walk_ticks: int = 30
+## A man standing still loses one point of fatigue every this many ticks.
+@export var fatigue_rest_ticks: int = 50
+## Share of a man's hunger, 0 to 100, that his suppression can never fade below.
+@export var hunger_floor_percent: int = 30
+## Share of a man's fatigue, 0 to 100, that his suppression can never fade below.
+@export var fatigue_floor_percent: int = 20
+## The most that hunger and fatigue together can hold suppression up. Keep it
+## below pinned_threshold: a starving man pins sooner, but is never pinned by
+## hunger alone.
+@export var condition_floor_max: int = 40
+
 @export_group("Scavenging")
 ## Ticks a man needs to pick up one round from the ground beside him.
 @export var gather_ticks_per_round: int = 5

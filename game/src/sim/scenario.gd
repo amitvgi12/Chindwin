@@ -21,6 +21,13 @@ class CacheSpec:
 	var rounds: int
 
 
+## How fed and rested one side's men are when the scenario begins.
+class StartingCondition:
+	extends RefCounted
+	var hunger: int = 0
+	var fatigue: int = 0
+
+
 ## A change of weather at a given moment.
 class WeatherChange:
 	extends RefCounted
@@ -53,6 +60,8 @@ var has_enemy_fallback: bool = false
 ## Enemy teams made up of Indian soldiers, who can be called on to come over.
 ## Not every unit opposite the INA was Indian, so this is set per scenario.
 var appealable_enemy_teams: Array[int] = []
+## How hungry and tired each side starts. A side not listed starts fed and rested.
+var starting_condition: Dictionary[SimSoldier.BattleSide, StartingCondition] = {}
 ## The mission is lost when fewer than this many of the player's men are fit.
 var section_broken_below: int = 1
 ## Problems found while loading, in plain words. Empty means the scenario is usable.
@@ -99,7 +108,14 @@ static func from_json_text(text: String) -> Scenario:
 		scenario._read_appealable(data.get("appealable_enemy_teams"))
 	if data.has("enemy_fallback"):
 		scenario._read_enemy_fallback(data.get("enemy_fallback"))
+	if data.has("condition"):
+		scenario._read_condition(data.get("condition"))
 	return scenario
+
+
+## How one side starts. Fed and rested unless the scenario says otherwise.
+func condition_for(side: SimSoldier.BattleSide) -> StartingCondition:
+	return starting_condition.get(side, StartingCondition.new())
 
 
 func is_valid() -> bool:
@@ -130,6 +146,32 @@ func _read_appealable(value: Variant) -> void:
 		return
 	for entry: Variant in value as Array:
 		appealable_enemy_teams.append(_as_int(entry, "appealable_enemy_teams entry", errors))
+
+
+func _read_condition(value: Variant) -> void:
+	if not value is Dictionary:
+		errors.append("condition must be an object with 'player' and/or 'enemy'")
+		return
+	var sides: Dictionary[String, SimSoldier.BattleSide] = {
+		"player": SimSoldier.BattleSide.PLAYER, "enemy": SimSoldier.BattleSide.ENEMY
+	}
+	for key: Variant in (value as Dictionary).keys():
+		if not sides.has(str(key)):
+			errors.append("condition can only name 'player' or 'enemy', got '%s'" % key)
+			continue
+		var fields: Variant = (value as Dictionary)[key]
+		if not fields is Dictionary:
+			errors.append("condition for %s must be an object" % key)
+			continue
+		var start: StartingCondition = StartingCondition.new()
+		for field: String in ["hunger", "fatigue"]:
+			if not (fields as Dictionary).has(field):
+				continue
+			var amount: int = _as_int((fields as Dictionary)[field], "%s %s" % [key, field], errors)
+			if amount < 0 or amount > 100:
+				errors.append("%s %s must be from 0 to 100" % [key, field])
+			start.set(field, clampi(amount, 0, 100))
+		starting_condition[sides[str(key)]] = start
 
 
 func _read_caches(value: Variant) -> void:
