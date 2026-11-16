@@ -6,6 +6,7 @@ extends SceneTree
 ##   make screenshot                                     the test range, mid-battle
 ##   make screenshot OVERLAY=1                           the same, debug overlay on
 ##   make screenshot SCENE=res://scenes/briefing.tscn    any other scene
+##   make screenshot HUNGER=70                           the section starts that hungry
 ##
 ## Both write build/screenshot.png.
 
@@ -22,6 +23,7 @@ var _frames: int = 0
 var _scene_path: String = DEFAULT_SCENE
 var _output_path: String = "user://screenshot.png"
 var _overlay: bool = false
+var _hunger: int = 0
 
 
 func _initialize() -> void:
@@ -30,6 +32,8 @@ func _initialize() -> void:
 			_output_path = argument.trim_prefix("--out=")
 		elif argument == "--overlay":
 			_overlay = true
+		elif argument.begins_with("--hunger="):
+			_hunger = int(argument.trim_prefix("--hunger="))
 		elif argument.begins_with("--scene=") and argument.length() > 8:
 			_scene_path = argument.trim_prefix("--scene=")
 	var packed: PackedScene = load(_scene_path) as PackedScene
@@ -57,6 +61,7 @@ func _process(_delta: float) -> bool:
 ## Team 1 goes to the bank facing the picket; team 2 goes round the north
 ## behind the jungle.
 func _start_scripted_battle(view: BattleView) -> void:
+	view.sim.make_hungrier(SimSoldier.BattleSide.PLAYER, _hunger)
 	view.select_team(1)
 	view.order_selected_team_to(Vector2i(22, 9))
 	view.select_team(2)

@@ -6,11 +6,11 @@ WEAPON_RIFLE,Rifle (placeholder)
 HUD_PAUSED,PAUSED
 HUD_RUNNING,RUNNING
 HUD_STATUS,{state}   Time {time}   Selected: Team {team}   {weather}
-HUD_TEAM,"Team {team}: {fit} of {total} fit, {pinned} pinned, {rounds} rounds, {fire}"
+HUD_TEAM,"Team {team}: {fit} of {total} fit, {pinned} pinned, {rounds} rounds, {rations} food, hunger {hunger}, {fire}"
 HUD_FIRE_ON,firing
 HUD_FIRE_OFF,holding fire
 HUD_ENEMY,"Enemy picket: {fit} of {total}, {pinned} pinned, {withdrew} withdrew"
-HUD_CONTROLS,"Space: pause   1, 2: team   Right-click: move   Shift + right-click: waypoint   F: hold fire   G: gather   C: call out   B: fall back   R: restart   H: help   O: overlay"
+HUD_CONTROLS,"Space: pause   1, 2: team   Right-click: move   Shift + right-click: waypoint   F: hold fire   G: gather   E: eat   C: call out   B: fall back   R: restart   H: help   O: overlay"
 HUD_PAUSED_BANNER,"PAUSED. Give orders, then press Space."
 BRIEFING_1,Late June 1944. The hills south of the Palel-Tamu road.
 BRIEFING_2,In early May the brigade attacked the airfield at Palel and was thrown back.
@@ -42,14 +42,14 @@ CONTROLS_MARK_5,A man who is walking does not fire.
 CONTROLS_MARK_6,Rounds are counted. A man with none left cannot fire.
 CONTROLS_CONTINUE,Press Space to continue.
 CONTROLS_CLOSE,Press H to close.
-DEBUG_TITLE,"Debug overlay (O hides it, W changes the weather)   seed {seed}   tick {tick}"
+DEBUG_TITLE,"Debug overlay (O hides it, W changes the weather, N makes your section hungrier)   seed {seed}   tick {tick}"
 DEBUG_LEGEND,"Red line: the enemy can hit that man. Grey line: he is seen but covered. Green line: your man has a clear shot. Number: suppression. P pinned, B broken, F falling back."
 DEBUG_LOG_HEADING,"Enemy decisions, newest last:"
 DEBUG_LOG_EMPTY,(none yet)
 DEBRIEF_OBJECTIVE_TAKEN,The picket has gone. The ground is yours.
 DEBRIEF_WITHDREW,You broke off and brought your men back.
 DEBRIEF_SECTION_BROKEN,Your section can no longer fight.
-DEBRIEF_SECTION,"Your section: {fit} of {total} fit, {down} down."
+DEBRIEF_SECTION,"Your section: {fit} of {total} fit, {down} down, {walked} walked away."
 DEBRIEF_ROUNDS,Rounds: {left} left of {start}.
 DEBRIEF_ENEMY,"The picket: {fell} down, {withdrew} got away, {came} came over, {holding} still holding."
 DEBRIEF_TIME,Time: {time}.   Press R to go again.
@@ -61,7 +61,7 @@ CONTROLS_MARK_7,"Ground marked with short strokes is a slope. It is slower to cr
 CONTROLS_MARK_8,"The weather changes. Heavy rain cuts how far anyone can see and shoot, and makes rifles stop."
 HUD_ENDED,ENDED
 CONTROLS_KEY_8,"C makes the selected team call out in Hindustani to the nearest group of Indian soldiers within earshot, asking them to come over. It takes five seconds and the team does not fire meanwhile. Each group can be called to once. It usually fails, and then they fight harder. It is likelier against men who are pinned or have lost comrades. Rain drowns voices."
-CONTROLS_MARK_9,"A small box with a number is ammunition on the ground: a supply box, or what a man was carrying when he fell."
+CONTROLS_MARK_9,"A small box is supplies on the ground: a supply box, or what a man was carrying when he fell. The number above it is rounds. ""food"" beneath it counts rations."
 HUD_GATHER_ON,gathering
 HUD_NO_ROUNDS,no rounds left
 HUD_HINT_NO_ROUNDS,Your section has no rounds left. G gathers from a box or a fallen man beside you. B falls back.
@@ -73,3 +73,10 @@ MSG_APPEAL_ACCEPTED,The picket lays down its arms and comes over.
 MSG_APPEAL_REFUSED,"The picket refuses, and opens fire."
 MSG_APPEAL_NOBODY,Nobody within earshot who can be called to.
 DEBUG_APPEAL,Appeal: earshot {range} cells; chance now {chance}% for picket {team}.
+HUD_EATING,eating
+MSG_WALKED_AWAY,A man of team {team} has had enough. He gets up and walks away.
+MSG_EAT_NOBODY,Nobody in team {team} is hungry and has food.
+MAP_RATIONS,{rations} food
+DEBUG_CONDITION,"Team {team}: hunger {hunger}, fatigue {fatigue}, bar held at {floor}, walks away if broken {chance}%."
+CONTROLS_KEY_10,"E makes the hungry men of the selected team eat a ration each. It takes three seconds, and they do not fire meanwhile."
+CONTROLS_MARK_11,"Grey in the bar is hunger and tiredness: it stays until the men eat or rest. Hungry men break sooner, and may walk away for good."

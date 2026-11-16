@@ -132,8 +132,12 @@ func test_the_corner_panel_reports_state_and_strengths() -> void:
 	var text: String = view.hud_text()
 	assert_string_contains(text, "Test range")
 	assert_string_contains(text, "PAUSED")
-	assert_string_contains(text, "Team 1: 5 of 5 fit, 0 pinned, 100 rounds, firing")
-	assert_string_contains(text, "Team 2: 5 of 5 fit, 0 pinned, 100 rounds, firing")
+	assert_string_contains(
+		text, "Team 1: 5 of 5 fit, 0 pinned, 100 rounds, 5 food, hunger 0, firing"
+	)
+	assert_string_contains(
+		text, "Team 2: 5 of 5 fit, 0 pinned, 100 rounds, 5 food, hunger 0, firing"
+	)
 	assert_string_contains(text, "Enemy picket: 4 of 4, 0 pinned, 0 withdrew")
 
 
@@ -157,7 +161,7 @@ func test_f_tells_only_the_selected_team_to_hold_fire() -> void:
 	assert_true(view.team_is_firing(1), "team 1 was not told anything")
 	view._process(0.0)
 	assert_string_contains(
-		view.hud_text(), "Team 2: 5 of 5 fit, 0 pinned, 100 rounds, holding fire"
+		view.hud_text(), "Team 2: 5 of 5 fit, 0 pinned, 100 rounds, 5 food, hunger 0, holding fire"
 	)
 	view.toggle_pause()
 	view.advance(0.1)
@@ -213,7 +217,7 @@ func test_the_debrief_reports_a_taken_objective_with_its_cost() -> void:
 	view.advance(0.1)
 	view._process(0.0)
 	assert_string_contains(view.banner_text(), "The picket has gone")
-	assert_string_contains(view.banner_text(), "9 of 10 fit, 1 down")
+	assert_string_contains(view.banner_text(), "9 of 10 fit, 1 down, 0 walked away")
 	assert_string_contains(view.banner_text(), "1 down, 3 got away, 0 came over, 0 still holding")
 	assert_string_contains(view.banner_text(), "left of 200")
 
@@ -314,7 +318,9 @@ func test_g_tells_the_selected_team_to_gather_and_again_to_stop() -> void:
 	assert_true(view.team_is_gathering(1))
 	assert_false(view.team_is_gathering(2))
 	view._process(0.0)
-	assert_string_contains(view.hud_text(), "Team 1: 5 of 5 fit, 0 pinned, 100 rounds, gathering")
+	assert_string_contains(
+		view.hud_text(), "Team 1: 5 of 5 fit, 0 pinned, 100 rounds, 5 food, hunger 0, gathering"
+	)
 	view.toggle_pause()
 	view.advance(0.1)
 	assert_true(_first_of_team(1).told_to_gather, "the order reached the sim")
@@ -338,7 +344,7 @@ func test_a_team_with_no_rounds_says_so_instead_of_firing() -> void:
 		soldier.rounds = 0
 	view._process(0.0)
 	assert_string_contains(
-		view.hud_text(), "Team 1: 5 of 5 fit, 0 pinned, 0 rounds, no rounds left"
+		view.hud_text(), "Team 1: 5 of 5 fit, 0 pinned, 0 rounds, 5 food, hunger 0, no rounds left"
 	)
 	assert_string_contains(view.hud_text(), "Space: pause", "team 2 still has rounds")
 
@@ -376,3 +382,51 @@ func test_the_debug_overlay_shows_the_chance_an_appeal_would_work() -> void:
 	view.handle_input(_key(KEY_O))
 	view._process(0.0)
 	assert_string_contains(view.debug_text(), "Appeal: earshot 6 cells; chance now 2%")
+
+
+func test_e_with_a_fed_section_says_nobody_can_eat() -> void:
+	view.handle_input(_key(KEY_E))
+	view._process(0.0)
+	assert_string_contains(view.banner_text(), "Nobody in team 1 is hungry and has food")
+
+
+func test_e_with_a_hungry_team_makes_it_eat_and_says_so() -> void:
+	for soldier: SimSoldier in view.sim.living(SimSoldier.BattleSide.PLAYER, 1):
+		soldier.hunger = 60
+	view.handle_input(_key(KEY_E))
+	view.toggle_pause()
+	view.advance(0.1)
+	view._process(0.0)
+	assert_string_contains(view.hud_text(), "hunger 60, eating")
+	for count: int in 35:
+		view.advance(0.1)
+	view._process(0.0)
+	assert_string_contains(
+		view.hud_text(), "Team 1: 5 of 5 fit, 0 pinned, 100 rounds, 0 food, hunger 20"
+	)
+
+
+func test_n_makes_the_section_hungrier_only_while_the_debug_overlay_is_on() -> void:
+	view.handle_input(_key(KEY_N))
+	assert_eq(_first_of_team(1).hunger, 0, "overlay off: nothing happens")
+	view.handle_input(_key(KEY_O))
+	view.handle_input(_key(KEY_N))
+	assert_eq(_first_of_team(1).hunger, 20)
+	assert_eq(_first_of_team(2).hunger, 20)
+	view._process(0.0)
+	assert_string_contains(view.debug_text(), "Team 1: hunger 20, fatigue 0, bar held at 6")
+
+
+func test_a_man_walking_away_is_announced_and_counted_in_the_debrief() -> void:
+	var man: SimSoldier = _first_of_team(1)
+	man.hunger = 100
+	ConditionRules.start_walking_away(view.sim, man)
+	view.toggle_pause()
+	view.advance(0.1)
+	view._process(0.0)
+	assert_string_contains(view.banner_text(), "A man of team 1 has had enough")
+	assert_eq(view.sim.walked_away_count(SimSoldier.BattleSide.PLAYER), 1)
+
+
+func test_the_box_on_the_test_range_holds_food_as_well_as_rounds() -> void:
+	assert_eq(view.sim.rations_on_the_ground(), 4)

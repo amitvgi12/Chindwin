@@ -58,6 +58,11 @@ const COLOUR_METER_BACK: Color = Color(0.0, 0.0, 0.0, 0.6)
 const COLOUR_METER_RISING: Color = Color("e8d44d")
 const COLOUR_METER_PINNED: Color = Color("ff7a1a")
 const COLOUR_METER_BROKEN: Color = Color("ff2d2d")
+## The part of the bar that hunger and tiredness hold up.
+const COLOUR_METER_CONDITION: Color = Color("8c8c8c")
+const COLOUR_RATIONS: Color = Color("e6d3b3")
+## How much hungrier the debug key makes the section each time.
+const DEBUG_HUNGER_STEP: int = 20
 const COLOUR_DEBUG_THREAT: Color = Color(1.0, 0.25, 0.2, 0.55)
 const COLOUR_DEBUG_COVERED: Color = Color(0.8, 0.8, 0.8, 0.3)
 const COLOUR_DEBUG_CLEAR_SHOT: Color = Color(0.3, 1.0, 0.4, 0.6)
@@ -189,6 +194,8 @@ func handle_input(event: InputEvent) -> void:
 		toggle_gather_for_selected_team()
 	elif event.is_action_pressed(InputActions.CALL_OUT):
 		call_out_with_selected_team()
+	elif event.is_action_pressed(InputActions.EAT):
+		eat_with_selected_team()
 	elif event.is_action_pressed(InputActions.FALL_BACK):
 		order_selected_team_to_fall_back()
 	elif event.is_action_pressed(InputActions.HELP):
@@ -197,6 +204,8 @@ func handle_input(event: InputEvent) -> void:
 		debug_overlay = not debug_overlay
 	elif event.is_action_pressed(InputActions.DEBUG_NEXT_WEATHER):
 		debug_next_weather()
+	elif event.is_action_pressed(InputActions.DEBUG_HUNGRIER):
+		debug_make_section_hungrier()
 	elif event.is_action_pressed(InputActions.RESTART):
 		restart()
 	elif event is InputEventMouseButton:
@@ -246,6 +255,13 @@ func debug_next_weather() -> void:
 	sim.set_weather(ids[(ids.find(sim.weather_id) + 1) % ids.size()])
 
 
+## Debug only: make the player's section hungrier, so condition can be tried
+## on the test range. Does nothing unless the debug overlay is showing.
+func debug_make_section_hungrier() -> void:
+	if debug_overlay:
+		sim.make_hungrier(SimSoldier.BattleSide.PLAYER, DEBUG_HUNGER_STEP)
+
+
 ## What the status strip says about the weather, or "" when there is none.
 func weather_text() -> String:
 	if sim.weather == null:
@@ -284,6 +300,14 @@ func call_out_with_selected_team() -> bool:
 	if sim.order_appeal(selected_team):
 		return true
 	show_message(tr("MSG_APPEAL_NOBODY"))
+	return false
+
+
+## Order the selected team to eat. Says so on screen when nobody can.
+func eat_with_selected_team() -> bool:
+	if sim.order_eat(selected_team):
+		return true
+	show_message(tr("MSG_EAT_NOBODY").format({"team": selected_team}))
 	return false
 
 
@@ -420,6 +444,7 @@ func debrief_text() -> String:
 						"fit": sim.in_fight_count(player),
 						"total": _count_side(player),
 						"down": sim.casualty_count(player),
+						"walked": sim.walked_away_count(player),
 					}
 				)
 			)
@@ -467,6 +492,8 @@ func _team_line(team_id: int) -> String:
 	var fire_key: String = "HUD_FIRE_ON" if team_is_firing(team_id) else "HUD_FIRE_OFF"
 	if sim.appeal_caller_team() == team_id:
 		fire_key = "HUD_CALLING_OUT"
+	elif sim.eating_count(player, team_id) > 0:
+		fire_key = "HUD_EATING"
 	elif team_is_gathering(team_id):
 		fire_key = "HUD_GATHER_ON"
 	elif sim.team_rounds(player, team_id) == 0:
@@ -477,9 +504,44 @@ func _team_line(team_id: int) -> String:
 		"total": sim.strength(player, team_id),
 		"pinned": sim.pinned_count(player, team_id),
 		"rounds": sim.team_rounds(player, team_id),
+		"rations": sim.team_rations(player, team_id),
+		"hunger": _average(sim.living(player, team_id), "hunger"),
 		"fire": tr(fire_key),
 	}
 	return tr("HUD_TEAM").format(values)
+
+
+## The average of one whole-number field over some soldiers, rounded down.
+func _average(soldiers: Array[SimSoldier], field: StringName) -> int:
+	if soldiers.is_empty():
+		return 0
+	var total: int = 0
+	for soldier: SimSoldier in soldiers:
+		total += int(soldier.get(field))
+	return total / soldiers.size()
+
+
+## The debug line for one player team: its condition, and what it means.
+func _condition_debug_line(team_id: int) -> String:
+	var team: Array[SimSoldier] = sim.living(SimSoldier.BattleSide.PLAYER, team_id)
+	var floor_total: int = 0
+	var chance_total: int = 0
+	for soldier: SimSoldier in team:
+		floor_total += sim.condition_floor(soldier)
+		chance_total += sim.walk_away_chance_percent(soldier)
+	var count: int = maxi(1, team.size())
+	return (
+		tr("DEBUG_CONDITION")
+		. format(
+			{
+				"team": team_id,
+				"hunger": _average(team, "hunger"),
+				"fatigue": _average(team, "fatigue"),
+				"floor": floor_total / count,
+				"chance": chance_total / count,
+			}
+		)
+	)
 
 
 func _refresh_debug_text() -> void:
@@ -505,6 +567,8 @@ func _refresh_debug_text() -> void:
 				)
 			)
 		)
+	for team_id: int in sim.team_ids(SimSoldier.BattleSide.PLAYER):
+		lines.append(_condition_debug_line(team_id))
 	lines.append(tr("DEBUG_LOG_HEADING"))
 	if sim.ai_log.is_empty():
 		lines.append(tr("DEBUG_LOG_EMPTY"))
@@ -544,6 +608,9 @@ func _message_for(event: SimEvent) -> void:
 		show_message(tr("MSG_APPEAL_ACCEPTED"))
 	elif event.kind == SimEvent.Kind.APPEAL_REFUSED:
 		show_message(tr("MSG_APPEAL_REFUSED"))
+	elif event.kind == SimEvent.Kind.WALKED_AWAY:
+		var team_id: int = sim.soldiers[event.actor_id].team_id
+		show_message(tr("MSG_WALKED_AWAY").format({"team": team_id}))
 
 
 func _age_tracers(delta: float) -> void:
@@ -648,17 +715,25 @@ func _draw_jungle() -> void:
 ## The number is outlined so it stays readable over a casualty's mark.
 func _draw_caches() -> void:
 	for cache: AmmoCache in sim.caches:
-		if cache.rounds <= 0:
+		if not cache.has_anything():
 			continue
 		var centre: Vector2 = cell_centre(cache.cell)
 		var box: Rect2 = Rect2(centre + Vector2(-6, 5), Vector2(12, 8))
 		draw_rect(box.grow(1.5), COLOUR_OUTLINE)
 		draw_rect(box, COLOUR_CACHE)
 		var where: Vector2 = centre + Vector2(-8, -12)
-		var text: String = str(cache.rounds)
 		var font: Font = ThemeDB.fallback_font
-		draw_string_outline(font, where, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, 4, COLOUR_OUTLINE)
-		draw_string(font, where, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, COLOUR_CACHE)
+		if cache.rounds > 0:
+			_draw_outlined(font, where, str(cache.rounds), COLOUR_CACHE)
+		if cache.rations > 0:
+			var food: String = tr("MAP_RATIONS").format({"rations": cache.rations})
+			_draw_outlined(font, centre + Vector2(-14, 24), food, COLOUR_RATIONS)
+
+
+## Small text with a dark outline, so it reads over anything on the map.
+func _draw_outlined(font: Font, where: Vector2, text: String, colour: Color) -> void:
+	draw_string_outline(font, where, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, 4, COLOUR_OUTLINE)
+	draw_string(font, where, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, colour)
 
 
 ## The route still to be walked by each man of the selected team.
@@ -667,7 +742,8 @@ func _draw_routes() -> void:
 		var selected: bool = (
 			soldier.side == SimSoldier.BattleSide.PLAYER and soldier.team_id == selected_team
 		)
-		if not selected or not soldier.is_moving():
+		# A man walking away is not following any order the player gave.
+		if not selected or not soldier.is_moving() or soldier.walking_away:
 			continue
 		var points: PackedVector2Array = PackedVector2Array([_soldier_position(soldier)])
 		for cell: Vector2i in soldier.path:
@@ -682,6 +758,8 @@ func _draw_destinations() -> void:
 	for soldier: SimSoldier in sim.soldiers:
 		if soldier.side != SimSoldier.BattleSide.PLAYER or not soldier.is_moving():
 			continue
+		if soldier.walking_away:
+			continue
 		var centre: Vector2 = cell_centre(soldier.destination())
 		var box: Rect2 = Rect2(centre - Vector2(6, 6), Vector2(12, 12))
 		draw_rect(box, _team_colour(soldier), false, 2.0)
@@ -695,9 +773,13 @@ func _draw_soldier(soldier: SimSoldier) -> void:
 		draw_colored_polygon(_diamond(centre, 14.0 * size), COLOUR_OUTLINE)
 		draw_colored_polygon(_diamond(centre, 11.5 * size), COLOUR_ENEMY)
 	else:
+		# A man walking away is drawn faded and is no longer part of the selection.
+		var fill: Color = _team_colour(soldier)
+		if soldier.walking_away:
+			fill.a = 0.4
 		draw_circle(centre, 12.5 * size, COLOUR_OUTLINE)
-		draw_circle(centre, 10.5 * size, _team_colour(soldier))
-		if soldier.team_id == selected_team:
+		draw_circle(centre, 10.5 * size, fill)
+		if soldier.team_id == selected_team and not soldier.walking_away:
 			draw_arc(centre, 14.5, 0.0, TAU, 32, COLOUR_SELECTED, 2.0)
 		draw_string(
 			ThemeDB.fallback_font,
@@ -734,6 +816,10 @@ func _draw_suppression_meter(soldier: SimSoldier, centre: Vector2) -> void:
 	elif sim.is_pinned(soldier):
 		colour = COLOUR_METER_PINNED
 	draw_rect(Rect2(corner, Vector2(24.0 * soldier.suppression / 100.0, 4.0)), colour)
+	# Grey from the left: the part hunger and tiredness hold up.
+	var held: int = mini(sim.condition_floor(soldier), soldier.suppression)
+	if held > 0:
+		draw_rect(Rect2(corner, Vector2(24.0 * held / 100.0, 4.0)), COLOUR_METER_CONDITION)
 	# A tick marks the level at which a man becomes pinned.
 	var mark_x: float = corner.x + 24.0 * sim.rules.pinned_threshold / 100.0
 	draw_line(Vector2(mark_x, corner.y - 1), Vector2(mark_x, corner.y + 5), Color.WHITE, 1.0)

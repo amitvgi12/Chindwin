@@ -400,6 +400,13 @@ func walked_away_count(side: SimSoldier.BattleSide) -> int:
 	return count
 
 
+## Debug only: make every man of one side still in the fight hungrier.
+func make_hungrier(side: SimSoldier.BattleSide, amount: int) -> void:
+	for soldier: SimSoldier in soldiers:
+		if soldier.side == side and soldier.in_fight():
+			soldier.hunger = clampi(soldier.hunger + amount, 0, 100)
+
+
 ## Chance from 0 to 100 that a man would walk away if he broke now.
 func walk_away_chance_percent(soldier: SimSoldier) -> int:
 	return ConditionRules.walk_away_chance_percent(rules, soldier)

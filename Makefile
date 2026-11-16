@@ -66,7 +66,7 @@ gate1: import
 
 screenshot: import
 	mkdir -p build
-	$(GODOT) --path $(GAME) -s res://dev/screenshot.gd -- --out=$(CURDIR)/build/screenshot.png --scene=$(SCENE) $(if $(OVERLAY),--overlay)
+	$(GODOT) --path $(GAME) -s res://dev/screenshot.gd -- --out=$(CURDIR)/build/screenshot.png --scene=$(SCENE) $(if $(OVERLAY),--overlay) $(if $(HUNGER),--hunger=$(HUNGER))
 
 export-windows: import
 	tools/export_windows.sh

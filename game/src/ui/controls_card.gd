@@ -15,6 +15,7 @@ const KEY_LINES: Array[String] = [
 	"CONTROLS_KEY_6",
 	"CONTROLS_KEY_7",
 	"CONTROLS_KEY_8",
+	"CONTROLS_KEY_10",
 	"CONTROLS_KEY_9",
 ]
 const MARK_LINES: Array[String] = [
@@ -28,6 +29,7 @@ const MARK_LINES: Array[String] = [
 	"CONTROLS_MARK_8",
 	"CONTROLS_MARK_9",
 	"CONTROLS_MARK_10",
+	"CONTROLS_MARK_11",
 ]
 
 ## Scene to open when the player continues. Empty when shown inside the map.
