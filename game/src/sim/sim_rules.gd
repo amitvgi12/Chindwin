@@ -68,6 +68,14 @@ extends Resource
 ## hunger alone.
 @export var condition_floor_max: int = 40
 
+@export_group("Walking away")
+## Below this hunger none of the player's men walks away, however hard pressed.
+@export var walk_away_hunger: int = 40
+## Chance from 0 to 100 that a starving man (hunger 100) walks away when he
+## breaks. Between walk_away_hunger and 100 the chance rises in proportion.
+## 0 turns walking away off.
+@export var walk_away_max_percent: int = 30
+
 @export_group("Food")
 ## Ticks a man needs to eat a ration. He does not fire meanwhile.
 @export var eat_ticks: int = 30

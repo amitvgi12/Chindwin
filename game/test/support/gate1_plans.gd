@@ -49,11 +49,12 @@ class Result:
 	var picket_fell: int
 	var picket_withdrew: int
 	var rounds_left: int
+	var walked_away: int
 	var ai_log: Array[String]
 
 	func summary() -> String:
 		return (
-			"%s  time %3ds  attackers fit %2d  picket fell %d withdrew %d  rounds left %3d"
+			"%s  time %3ds  attackers fit %2d  picket fell %d withdrew %d  rounds left %3d%s"
 			% [
 				"SUCCESS" if succeeded else "failure",
 				ticks / 10,
@@ -61,13 +62,20 @@ class Result:
 				picket_fell,
 				picket_withdrew,
 				rounds_left,
+				"  walked away %d" % walked_away if walked_away > 0 else "",
 			]
 		)
 
 
-static func play(plan: Plan, seed_value: int) -> Result:
+## `player_hunger` above 0 starts the section that hungry instead of fed.
+## The Gate 1 criterion is about a fresh section and never sets it.
+static func play(plan: Plan, seed_value: int, player_hunger: int = 0) -> Result:
 	var rules: SimRules = load(RULES) as SimRules
 	var scenario: Scenario = Scenario.load_file(TEST_RANGE)
+	if player_hunger > 0:
+		var hungry: Scenario.StartingCondition = Scenario.StartingCondition.new()
+		hungry.hunger = player_hunger
+		scenario.starting_condition[SimSoldier.BattleSide.PLAYER] = hungry
 	var weapons: Dictionary[String, WeaponDef] = WeaponLibrary.load_for(scenario)
 	var weathers: Dictionary[String, WeatherDef] = WeatherLibrary.load_for(scenario)
 	var sim: Simulation = Simulation.new(rules, scenario, weapons, seed_value, weathers)
@@ -112,6 +120,7 @@ static func play(plan: Plan, seed_value: int) -> Result:
 	result.rounds_left = 0
 	for team_id: int in sim.team_ids(player):
 		result.rounds_left += sim.team_rounds(player, team_id)
+	result.walked_away = sim.walked_away_count(player)
 	result.ai_log = sim.ai_log
 	result.succeeded = (
 		sim.in_fight_count(enemy) == 0 and result.attackers_fit >= ATTACKERS_NEEDED_FIT

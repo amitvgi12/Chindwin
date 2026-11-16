@@ -27,6 +27,9 @@ static func rules() -> SimRules:
 	result.hunger_floor_percent = 30
 	result.fatigue_floor_percent = 20
 	result.condition_floor_max = 40
+	# Nobody walks away unless a test turns it on.
+	result.walk_away_hunger = 40
+	result.walk_away_max_percent = 0
 	# Food: a meal takes 10 ticks and takes 40 hunger away; three rations at most.
 	result.eat_ticks = 10
 	result.ration_hunger_relief = 40

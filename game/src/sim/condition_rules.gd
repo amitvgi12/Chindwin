@@ -60,6 +60,43 @@ static func stop_eating(team: Array[SimSoldier]) -> void:
 		soldier.eat_progress_ticks = 0
 
 
+## Chance from 0 to 100 that a man walks away when he breaks: nothing up to
+## walk_away_hunger, then rising in proportion to walk_away_max_percent at 100.
+static func walk_away_chance_percent(rules: SimRules, soldier: SimSoldier) -> int:
+	if rules.walk_away_max_percent <= 0 or rules.walk_away_hunger >= 100:
+		return 0
+	if soldier.hunger <= rules.walk_away_hunger:
+		return 0
+	var over: int = soldier.hunger - rules.walk_away_hunger
+	return rules.walk_away_max_percent * over / (100 - rules.walk_away_hunger)
+
+
+## He gets up and goes back to where he started, leaving whatever he was
+## doing. He walks even when pinned, does not fire, and takes no orders.
+## When he gets there he is out of the fight.
+static func start_walking_away(sim: Simulation, soldier: SimSoldier) -> void:
+	soldier.walking_away = true
+	soldier.told_to_gather = false
+	soldier.told_to_eat = false
+	soldier.eating_now = false
+	soldier.calling_out = false
+	sim.log_event(SimEvent.Kind.WALKED_AWAY, soldier.id, -1, soldier.cell)
+	var taken: Dictionary[Vector2i, bool] = {}
+	for other: SimSoldier in sim.soldiers:
+		if other.in_fight() and other != soldier:
+			taken[other.destination()] = true
+	var places: Array[Vector2i] = sim.grid.free_cells_near(soldier.start_cell, 1, taken)
+	soldier.step_ticks_left = 0
+	soldier.step_ticks_total = 0
+	soldier.path.clear()
+	if not places.is_empty():
+		soldier.path = sim.grid.find_path(soldier.cell, places[0])
+	if soldier.path.is_empty():
+		sim.withdraw(soldier)
+	else:
+		soldier.falling_back = true
+
+
 ## Men told to eat do so when standing still and not pinned. A meal takes
 ## eat_ticks, and a man eating does not fire. Then he stops.
 static func eat(sim: Simulation) -> void:

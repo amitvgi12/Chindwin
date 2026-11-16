@@ -285,7 +285,7 @@ func step() -> void:
 		# A pinned man will not walk forward, but a man going back still goes.
 		if soldier.is_moving() and (soldier.falling_back or not is_pinned(soldier)):
 			_advance_movement(soldier)
-	_gather_rounds()
+	ScavengingRules.gather(self)
 	ConditionRules.eat(self)
 	_advance_appeal()
 	_resolve_fire()
@@ -384,9 +384,25 @@ func in_fight_count(side: SimSoldier.BattleSide) -> int:
 func withdrawn_count(side: SimSoldier.BattleSide) -> int:
 	var count: int = 0
 	for soldier: SimSoldier in soldiers:
-		if soldier.side == side and soldier.withdrawn and not soldier.came_over:
+		if soldier.side != side or not soldier.withdrawn:
+			continue
+		if not soldier.came_over and not soldier.walking_away:
 			count += 1
 	return count
+
+
+## How many men of one side have got up and left: gone, or still on their way.
+func walked_away_count(side: SimSoldier.BattleSide) -> int:
+	var count: int = 0
+	for soldier: SimSoldier in soldiers:
+		if soldier.side == side and soldier.walking_away and soldier.alive:
+			count += 1
+	return count
+
+
+## Chance from 0 to 100 that a man would walk away if he broke now.
+func walk_away_chance_percent(soldier: SimSoldier) -> int:
+	return ConditionRules.walk_away_chance_percent(rules, soldier)
 
 
 ## How many men of one side came over in answer to an appeal.
@@ -586,7 +602,11 @@ func snapshot() -> String:
 
 func _apply_pending_orders() -> void:
 	for order: Order in _pending_orders:
-		var team: Array[SimSoldier] = living(SimSoldier.BattleSide.PLAYER, order.team_id)
+		# A man who is walking away no longer takes orders.
+		var team: Array[SimSoldier] = []
+		for soldier: SimSoldier in living(SimSoldier.BattleSide.PLAYER, order.team_id):
+			if not soldier.walking_away:
+				team.append(soldier)
 		if team.is_empty():
 			continue
 		if order.kind == Order.Kind.GATHER:
@@ -772,44 +792,15 @@ func _advance_movement(soldier: SimSoldier) -> void:
 	soldier.path.remove_at(0)
 	soldier.step_ticks_total = 0
 	if soldier.path.is_empty():
-		# An enemy who has gone back is out of the fight. One of the player's
-		# men who has gone back is simply back where he started.
-		if soldier.falling_back and soldier.side == SimSoldier.BattleSide.ENEMY:
+		# An enemy who has gone back is out of the fight, and so is a man who
+		# walked away. One of the player's men who fell back on orders is
+		# simply back where he started.
+		var leaving: bool = soldier.side == SimSoldier.BattleSide.ENEMY or soldier.walking_away
+		if soldier.falling_back and leaving:
 			withdraw(soldier)
 		else:
 			soldier.falling_back = false
 			_log(SimEvent.Kind.ARRIVED, soldier.id, -1, soldier.cell)
-
-
-## Men told to gather pick rounds up from a cache beside them, one round
-## every few ticks. A man must be standing still and not pinned. It is slow,
-## and he cannot fire while he does it: that is the risk.
-func _gather_rounds() -> void:
-	for soldier: SimSoldier in soldiers:
-		soldier.gathering_now = false
-		if not soldier.in_fight() or not soldier.told_to_gather:
-			continue
-		if soldier.is_moving() or is_pinned(soldier):
-			continue
-		var cache: AmmoCache = cache_within_reach(soldier.cell)
-		if cache == null:
-			continue
-		# Rounds first, then food.
-		var wants_rounds: bool = cache.rounds > 0 and soldier.rounds < rules.max_rounds_carried
-		var wants_food: bool = cache.rations > 0 and soldier.rations < rules.max_rations_carried
-		if not wants_rounds and not wants_food:
-			continue
-		soldier.gathering_now = true
-		soldier.gather_progress_ticks += 1
-		if soldier.gather_progress_ticks < rules.gather_ticks_per_round:
-			continue
-		soldier.gather_progress_ticks = 0
-		if wants_rounds:
-			cache.rounds -= 1
-			soldier.rounds += 1
-		else:
-			cache.rations -= 1
-			soldier.rations += 1
 
 
 ## Every man who is not walking, is allowed to fire, has rounds left and can
@@ -945,9 +936,21 @@ func _update_broken() -> void:
 		if not soldier.in_fight():
 			continue
 		if soldier.suppression >= rules.broken_threshold:
+			if not soldier.broken and soldier.side == SimSoldier.BattleSide.PLAYER:
+				_maybe_walk_away(soldier)
 			soldier.broken = true
 		elif soldier.suppression < rules.pinned_threshold:
 			soldier.broken = false
+
+
+## The moment one of the player's men breaks, hunger may make him leave for
+## good. No dice are rolled for a man below walk_away_hunger.
+func _maybe_walk_away(soldier: SimSoldier) -> void:
+	var chance: int = ConditionRules.walk_away_chance_percent(rules, soldier)
+	if chance <= 0 or soldier.walking_away:
+		return
+	if _rng.randi_range(1, 100) <= chance:
+		ConditionRules.start_walking_away(self, soldier)
 
 
 ## Whom a man shoots at: of the opponents he can see within range, the one

@@ -58,6 +58,10 @@ var broken: bool = false
 var falling_back: bool = false
 ## True once he has left the fight unhurt. He takes no further part.
 var withdrawn: bool = false
+## True once one of the player's men, hungry and broken, has got up to leave.
+## He walks back the way he came, takes no orders, and does not fire. When he
+## gets there he is gone. It stays true after he has left.
+var walking_away: bool = false
 ## True when he left the fight by coming over in answer to an appeal.
 var came_over: bool = false
 ## True while his team is calling out to the enemy. He does not fire.

@@ -6,6 +6,8 @@ extends SceneTree
 ##           make gate1 RUNS=100   a larger sample, totals only
 
 const DEFAULT_RUNS: int = 10
+## Starting hunger for the comparison runs of a hungry section.
+const HUNGER_COMPARISONS: Array[int] = [50, 80]
 
 
 func _initialize() -> void:
@@ -22,26 +24,36 @@ func _initialize() -> void:
 		Gate1Plans.Plan.DOUBLE_FLANK: "DOUBLE FLANK, NOBODY PINNING (for comparison)",
 	}
 	for plan: Gate1Plans.Plan in names:
-		var name: String = names[plan]
-		print("")
-		print("== %s ==" % name)
-		var wins: int = 0
-		var fit_total: int = 0
-		for seed_value: int in range(1, runs + 1):
-			var result: Gate1Plans.Result = Gate1Plans.play(plan, seed_value)
-			if result.succeeded:
-				wins += 1
-			fit_total += result.attackers_fit
-			if not list_each:
-				continue
-			print("seed %2d  %s" % [seed_value, result.summary()])
-			for line: String in result.ai_log:
-				print("           %s" % line)
-		var average_fit: float = float(fit_total) / runs
-		print(
-			(
-				"%s: %d of %d succeeded, %.1f of 10 attackers fit on average"
-				% [name, wins, runs, average_fit]
-			)
-		)
+		_report(names[plan], plan, 0, runs, list_each)
+	# Not part of Gate 1: the same attack by a section that starts hungry.
+	for hunger: int in HUNGER_COMPARISONS:
+		var name: String = "PIN THEN FLANK, SECTION STARTS AT HUNGER %d (for comparison)" % hunger
+		_report(name, Gate1Plans.Plan.PIN_THEN_FLANK, hunger, runs, list_each)
 	quit(0)
+
+
+func _report(name: String, plan: Gate1Plans.Plan, hunger: int, runs: int, list_each: bool) -> void:
+	print("")
+	print("== %s ==" % name)
+	var wins: int = 0
+	var fit_total: int = 0
+	var walked_total: int = 0
+	for seed_value: int in range(1, runs + 1):
+		var result: Gate1Plans.Result = Gate1Plans.play(plan, seed_value, hunger)
+		if result.succeeded:
+			wins += 1
+		fit_total += result.attackers_fit
+		walked_total += result.walked_away
+		if not list_each:
+			continue
+		print("seed %2d  %s" % [seed_value, result.summary()])
+		for line: String in result.ai_log:
+			print("           %s" % line)
+	var average_fit: float = float(fit_total) / runs
+	var line: String = (
+		"%s: %d of %d succeeded, %.1f of 10 attackers fit on average"
+		% [name, wins, runs, average_fit]
+	)
+	if hunger > 0:
+		line += ", %.2f walked away" % (float(walked_total) / runs)
+	print(line)

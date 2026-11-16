@@ -22,6 +22,7 @@ enum Kind {
 	APPEAL_ACCEPTED,
 	APPEAL_REFUSED,
 	ATE,
+	WALKED_AWAY,
 }
 
 var tick: int
