@@ -38,6 +38,7 @@ const COLOUR_BANK_EDGE: Color = Color("3a3122")
 const COLOUR_RAIN: Color = Color(0.86, 0.9, 0.95, 0.2)
 const COLOUR_RAIN_HAZE: Color = Color(0.45, 0.55, 0.65, 1.0)
 const COLOUR_SLOPE_STROKE: Color = Color(0.0, 0.0, 0.0, 0.22)
+const COLOUR_CACHE: Color = Color("c9a227")
 
 # Soldiers. The palette stays distinct for colour-blind players, and shape
 # differs too: player soldiers are circles, enemy soldiers are diamonds.
@@ -70,6 +71,8 @@ var _scenario: Scenario
 ## What each player team was last told about firing. Kept here because an
 ## order given while paused has not reached the simulation yet.
 var _team_fire: Dictionary[int, bool] = {}
+## What each player team was last told about gathering rounds.
+var _team_gather: Dictionary[int, bool] = {}
 var _tick_accumulator: float = 0.0
 var _rain_clock: float = 0.0
 var _events_drawn: int = 0
@@ -102,6 +105,7 @@ func _draw() -> void:
 	_draw_tracks()
 	_draw_banks()
 	_draw_jungle()
+	_draw_caches()
 	_draw_routes()
 	_draw_destinations()
 	for soldier: SimSoldier in sim.soldiers:
@@ -132,6 +136,7 @@ func restart() -> void:
 	paused = true
 	selected_team = 1
 	_team_fire.clear()
+	_team_gather.clear()
 	for team_id: int in sim.team_ids(SimSoldier.BattleSide.PLAYER):
 		_team_fire[team_id] = true
 	_tick_accumulator = 0.0
@@ -170,6 +175,8 @@ func handle_input(event: InputEvent) -> void:
 		select_team(2)
 	elif event.is_action_pressed(InputActions.TOGGLE_FIRE):
 		toggle_fire_for_selected_team()
+	elif event.is_action_pressed(InputActions.TOGGLE_GATHER):
+		toggle_gather_for_selected_team()
 	elif event.is_action_pressed(InputActions.FALL_BACK):
 		order_selected_team_to_fall_back()
 	elif event.is_action_pressed(InputActions.HELP):
@@ -257,6 +264,18 @@ func toggle_fire_for_selected_team() -> void:
 	var may_fire: bool = not team_is_firing(selected_team)
 	if sim.order_fire(selected_team, may_fire):
 		_team_fire[selected_team] = may_fire
+
+
+## Switch the selected team between gathering rounds and not.
+func toggle_gather_for_selected_team() -> void:
+	var gather: bool = not team_is_gathering(selected_team)
+	if sim.order_gather(selected_team, gather):
+		_team_gather[selected_team] = gather
+
+
+## What a player team was last told about gathering rounds.
+func team_is_gathering(team_id: int) -> bool:
+	return _team_gather.get(team_id, false)
 
 
 ## What a player team was last told: true for fire at will, false for hold fire.
@@ -404,6 +423,8 @@ func _team_line(team_id: int) -> String:
 	if fit == 0:
 		return tr("HUD_TEAM_GONE").format({"team": team_id})
 	var fire_key: String = "HUD_FIRE_ON" if team_is_firing(team_id) else "HUD_FIRE_OFF"
+	if team_is_gathering(team_id):
+		fire_key = "HUD_GATHER_ON"
 	var values: Dictionary[String, Variant] = {
 		"team": team_id,
 		"fit": fit,
@@ -549,6 +570,23 @@ func _draw_jungle() -> void:
 			)
 			var radius: float = 11.0 + _speckle(cell.x + crown * 3, cell.y + crown) * 8.0
 			draw_circle(cell_centre(cell) + offset, radius, COLOUR_JUNGLE[crown])
+
+
+## Ammunition on the ground: a small box, with the number of rounds above it.
+## The number is outlined so it stays readable over a casualty's mark.
+func _draw_caches() -> void:
+	for cache: AmmoCache in sim.caches:
+		if cache.rounds <= 0:
+			continue
+		var centre: Vector2 = cell_centre(cache.cell)
+		var box: Rect2 = Rect2(centre + Vector2(-6, 5), Vector2(12, 8))
+		draw_rect(box.grow(1.5), COLOUR_OUTLINE)
+		draw_rect(box, COLOUR_CACHE)
+		var where: Vector2 = centre + Vector2(-8, -12)
+		var text: String = str(cache.rounds)
+		var font: Font = ThemeDB.fallback_font
+		draw_string_outline(font, where, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, 4, COLOUR_OUTLINE)
+		draw_string(font, where, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, COLOUR_CACHE)
 
 
 ## The route still to be walked by each man of the selected team.

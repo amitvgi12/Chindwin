@@ -49,3 +49,9 @@ extends Resource
 @export var broken_threshold: int = 85
 ## The enemy picket reconsiders what to do every this many ticks.
 @export var ai_think_ticks: int = 10
+
+@export_group("Scavenging")
+## Ticks a man needs to pick up one round from the ground beside him.
+@export var gather_ticks_per_round: int = 5
+## The most rounds one man can carry.
+@export var max_rounds_carried: int = 40

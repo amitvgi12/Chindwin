@@ -28,6 +28,12 @@ var rounds: int = 0
 var fire_allowed: bool = true
 ## Ticks until he may fire again.
 var fire_cooldown_ticks: int = 0
+## True when his team has been told to gather rounds from the ground.
+var told_to_gather: bool = false
+## True on a tick in which he is actually picking rounds up. He does not fire.
+var gathering_now: bool = false
+## Ticks spent on the round he is picking up.
+var gather_progress_ticks: int = 0
 ## Pressure from incoming fire, 0 to 100. Fades when the firing stops.
 var suppression: int = 0
 ## True from the moment he breaks until the pressure has faded. He does not fire.

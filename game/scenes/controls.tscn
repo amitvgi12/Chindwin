@@ -30,9 +30,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_constants/margin_left = 180
+theme_override_constants/margin_left = 150
 theme_override_constants/margin_top = 26
-theme_override_constants/margin_right = 180
+theme_override_constants/margin_right = 150
 theme_override_constants/margin_bottom = 30
 
 [node name="Lines" type="VBoxContainer" parent="Margin"]
@@ -42,7 +42,7 @@ theme_override_constants/separation = 6
 
 [node name="Title" type="Label" parent="Margin/Lines"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 28
 text = "CONTROLS_TITLE"
 
 [node name="KeysHeading" type="Label" parent="Margin/Lines"]
@@ -53,8 +53,8 @@ text = "CONTROLS_KEYS_HEADING"
 
 [node name="Keys" type="Label" parent="Margin/Lines"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 17
-theme_override_constants/line_spacing = 4
+theme_override_font_sizes/font_size = 16
+theme_override_constants/line_spacing = 2
 autowrap_mode = 3
 
 [node name="MarksHeading" type="Label" parent="Margin/Lines"]
@@ -65,8 +65,8 @@ text = "CONTROLS_MARKS_HEADING"
 
 [node name="Marks" type="Label" parent="Margin/Lines"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 17
-theme_override_constants/line_spacing = 4
+theme_override_font_sizes/font_size = 16
+theme_override_constants/line_spacing = 2
 autowrap_mode = 3
 
 [node name="Spacer" type="Control" parent="Margin/Lines"]

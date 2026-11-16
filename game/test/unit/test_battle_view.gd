@@ -307,3 +307,27 @@ func test_w_changes_the_weather_only_while_the_debug_overlay_is_on() -> void:
 	assert_ne(view.sim.weather_id, "rain")
 	view._process(0.0)
 	assert_false(view.hud_text().contains("Rain: sight 16"))
+
+
+func test_g_tells_the_selected_team_to_gather_and_again_to_stop() -> void:
+	view.handle_input(_key(KEY_G))
+	assert_true(view.team_is_gathering(1))
+	assert_false(view.team_is_gathering(2))
+	view._process(0.0)
+	assert_string_contains(view.hud_text(), "Team 1: 5 of 5 fit, 0 pinned, 100 rounds, gathering")
+	view.toggle_pause()
+	view.advance(0.1)
+	assert_true(_first_of_team(1).told_to_gather, "the order reached the sim")
+	view.handle_input(_key(KEY_G))
+	view.advance(0.1)
+	assert_false(_first_of_team(1).told_to_gather)
+
+
+func test_restart_stops_any_gathering() -> void:
+	view.handle_input(_key(KEY_G))
+	view.handle_input(_key(KEY_R))
+	assert_false(view.team_is_gathering(1))
+
+
+func test_the_test_range_has_an_ammunition_box_in_the_open() -> void:
+	assert_eq(view.sim.rounds_on_the_ground(), 60)

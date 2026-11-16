@@ -25,9 +25,10 @@ what was decided since. Where they differ, this file wins.
 - **Gate 1 criterion 1 is met and is now a test** (`test_gate1_criterion.gd`). Run
   `make gate1` to see the battles behind it. Criteria 2 to 5 need Amit to play.
 - Phase 2 so far: mission outcomes (objective taken, withdrew, section broken), a
-  debrief, and weather as a rule (sight, slopes, stoppages; it changes on a schedule).
-- Phase 2 still to build: scavenging, condition (hunger, fatigue), one appeal
-  encounter, save and load, and a mission-length map.
+  debrief, weather as a rule (sight, slopes, stoppages; it changes on a schedule),
+  and scavenging (ammunition boxes, rounds left by the fallen, a gather order).
+- Phase 2 still to build: condition (hunger, fatigue), one appeal encounter, save
+  and load, and a mission-length map.
 - CI is green on GitHub, including the recorded battle, so the simulation gives the
   same result on macOS and Linux so far.
 - **Purpose: this build is a demo.** Amit may later take the game towards his earlier

@@ -10,7 +10,7 @@ HUD_TEAM,"Team {team}: {fit} of {total} fit, {pinned} pinned, {rounds} rounds, {
 HUD_FIRE_ON,firing
 HUD_FIRE_OFF,holding fire
 HUD_ENEMY,"Enemy picket: {fit} of {total}, {pinned} pinned, {withdrew} withdrew"
-HUD_CONTROLS,"Space: pause   1, 2: team   Right-click: move   Shift + right-click: waypoint   F: hold fire   B: fall back   R: restart   H: help   O: overlay"
+HUD_CONTROLS,"Space: pause   1, 2: team   Right-click: move   Shift + right-click: waypoint   F: hold fire   G: gather   B: fall back   R: restart   H: help   O: overlay"
 HUD_PAUSED_BANNER,"PAUSED. Give orders, then press Space."
 BRIEFING_1,Late June 1944. The hills south of the Palel-Tamu road.
 BRIEFING_2,In early May the brigade attacked the airfield at Palel and was thrown back.
@@ -32,7 +32,7 @@ CONTROLS_KEY_3,Right-click sends the selected team to that spot.
 CONTROLS_KEY_4,Shift + right-click adds a further leg to its route.
 CONTROLS_KEY_5,"F tells the selected team to hold fire, or to fire again."
 CONTROLS_KEY_6,"B makes the selected team fall back to where it started. Men falling back go even when pinned, and do not fire."
-CONTROLS_KEY_7,R starts again. H shows this page. O shows the debug overlay.
+CONTROLS_KEY_7,"G tells the selected team to gather rounds from a box or a fallen man beside them, or to stop. It is slow, and men who are gathering do not fire."
 CONTROLS_MARKS_HEADING,What you are looking at
 CONTROLS_MARK_1,"Circles are your men, marked with their team number. Diamonds are the enemy."
 CONTROLS_MARK_2,The bar over a man shows how much fire he is under. Past the white tick he is pinned: he stops walking and fires slower and worse. Red means he has broken and will not fire.
@@ -60,3 +60,6 @@ HUD_WEATHER,{weather}: sight {sight}
 CONTROLS_MARK_7,"Ground marked with short strokes is a slope. It is slower to cross, and slower still when wet."
 CONTROLS_MARK_8,"The weather changes. Heavy rain cuts how far anyone can see and shoot, and makes rifles stop."
 HUD_ENDED,ENDED
+CONTROLS_KEY_8,R starts again. H shows this page. O shows the debug overlay.
+CONTROLS_MARK_9,"A small box with a number is ammunition on the ground: a supply box, or what a man was carrying when he fell."
+HUD_GATHER_ON,gathering

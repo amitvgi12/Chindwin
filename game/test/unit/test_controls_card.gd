@@ -22,7 +22,9 @@ func test_every_line_has_english_text() -> void:
 
 func test_the_page_names_every_key_the_game_uses() -> void:
 	var text: String = card.keys_text()
-	for word: String in ["Space", "1 and 2", "Right-click", "Shift", "F ", "B ", "R ", "H ", "O "]:
+	for word: String in [
+		"Space", "1 and 2", "Right-click", "Shift", "F ", "B ", "G ", "R ", "H ", "O "
+	]:
 		assert_string_contains(text, word)
 
 

@@ -9,7 +9,7 @@ extends RefCounted
 
 class Order:
 	extends RefCounted
-	enum Kind { MOVE, FIRE_CONTROL, FALL_BACK }
+	enum Kind { MOVE, FIRE_CONTROL, FALL_BACK, GATHER }
 	var kind: Kind
 	var team_id: int
 	## Where to walk to, for MOVE.
@@ -18,6 +18,8 @@ class Order:
 	var append: bool
 	## Whether the team may shoot, for FIRE_CONTROL.
 	var fire_allowed: bool
+	## Whether the team should gather rounds, for GATHER.
+	var gather: bool
 
 
 ## How a mission can end. IN_PROGRESS means it has not.
@@ -42,6 +44,8 @@ var events: Array[SimEvent] = []
 var fallback_cell: Vector2i = Vector2i.ZERO
 ## What the enemy decided and why, one line per decision, for reading afterwards.
 var ai_log: Array[String] = []
+## Rounds lying on the ground. A cache stays in the list when it is empty.
+var caches: Array[AmmoCache] = []
 ## The weather now, or null when the scenario has none.
 var weather: WeatherDef
 ## Id of the weather now, or "" when the scenario has none.
@@ -88,6 +92,8 @@ func _init(
 		soldier.rounds = spec.rounds
 		soldiers.append(soldier)
 		_rounds_at_start[spec.side] = _rounds_at_start.get(spec.side, 0) + spec.rounds
+	for cache_spec: Scenario.CacheSpec in scenario.caches:
+		caches.append(AmmoCache.new(cache_spec.cell, cache_spec.rounds))
 	if not _weather_schedule.is_empty() and _weather_schedule[0].at_tick == 0:
 		set_weather(_weather_schedule[0].weather_id)
 
@@ -137,6 +143,21 @@ func order_fall_back(team_id: int) -> bool:
 	return true
 
 
+## Tell a player team to gather rounds from the ground (true) or to stop
+## (false). A man gathers when he is standing still, not pinned, beside a
+## cache that has rounds in it, and not already carrying all he can. While he
+## is gathering he does not fire. Returns false when nobody is left in the team.
+func order_gather(team_id: int, gather: bool) -> bool:
+	if living(SimSoldier.BattleSide.PLAYER, team_id).is_empty():
+		return false
+	var order: Order = Order.new()
+	order.kind = Order.Kind.GATHER
+	order.team_id = team_id
+	order.gather = gather
+	_pending_orders.append(order)
+	return true
+
+
 ## Advance the simulation by one tick. Does nothing once the mission has ended.
 func step() -> void:
 	if _outcome != Outcome.IN_PROGRESS:
@@ -152,6 +173,7 @@ func step() -> void:
 		# A pinned man will not walk forward, but a man going back still goes.
 		if soldier.is_moving() and (soldier.falling_back or not is_pinned(soldier)):
 			_advance_movement(soldier)
+	_gather_rounds()
 	_resolve_fire()
 	_outcome = _work_out_outcome()
 
@@ -321,6 +343,38 @@ func team_rounds(side: SimSoldier.BattleSide, team_id: int) -> int:
 	return total
 
 
+## Rounds lying on the ground across the whole map.
+func rounds_on_the_ground() -> int:
+	var total: int = 0
+	for cache: AmmoCache in caches:
+		total += cache.rounds
+	return total
+
+
+## The cache with rounds in it on or next to a cell, nearest first, or null.
+func cache_within_reach(cell: Vector2i) -> AmmoCache:
+	var best: AmmoCache = null
+	var best_distance: int = 3
+	for cache: AmmoCache in caches:
+		if cache.rounds <= 0:
+			continue
+		var apart: Vector2i = (cache.cell - cell).abs()
+		var distance: int = maxi(apart.x, apart.y)
+		if distance < best_distance and distance <= 1:
+			best = cache
+			best_distance = distance
+	return best
+
+
+## How many men of a team are picking rounds up this tick.
+func gathering_count(side: SimSoldier.BattleSide, team_id: int) -> int:
+	var count: int = 0
+	for soldier: SimSoldier in living(side, team_id):
+		if soldier.gathering_now:
+			count += 1
+	return count
+
+
 ## Whether a team is currently allowed to shoot. False when nobody is left.
 func team_may_fire(side: SimSoldier.BattleSide, team_id: int) -> bool:
 	for soldier: SimSoldier in living(side, team_id):
@@ -368,6 +422,7 @@ func snapshot() -> String:
 			1 if soldier.withdrawn else 0,
 		]
 		parts.append("%d:%s" % [soldier.id, ",".join(fields.map(str))])
+	parts.append("ground=%d" % rounds_on_the_ground())
 	return " ".join(parts)
 
 
@@ -376,7 +431,9 @@ func _apply_pending_orders() -> void:
 		var team: Array[SimSoldier] = living(SimSoldier.BattleSide.PLAYER, order.team_id)
 		if team.is_empty():
 			continue
-		if order.kind == Order.Kind.MOVE:
+		if order.kind == Order.Kind.GATHER:
+			_set_gathering(team, order)
+		elif order.kind == Order.Kind.MOVE:
 			_start_move(team, order)
 		elif order.kind == Order.Kind.FALL_BACK:
 			_start_fall_back(team, order)
@@ -453,6 +510,16 @@ func _start_fall_back(team: Array[SimSoldier], order: Order) -> void:
 	_log(SimEvent.Kind.ORDER_FALL_BACK, order.team_id, -1, Vector2i.ZERO)
 
 
+func _set_gathering(team: Array[SimSoldier], order: Order) -> void:
+	for soldier: SimSoldier in team:
+		soldier.told_to_gather = order.gather
+		soldier.gather_progress_ticks = 0
+	var kind: SimEvent.Kind = (
+		SimEvent.Kind.ORDER_GATHER if order.gather else SimEvent.Kind.ORDER_STOP_GATHERING
+	)
+	_log(kind, order.team_id, -1, Vector2i.ZERO)
+
+
 func _set_fire_control(team: Array[SimSoldier], order: Order) -> void:
 	for soldier: SimSoldier in team:
 		soldier.fire_allowed = order.fire_allowed
@@ -487,6 +554,29 @@ func _advance_movement(soldier: SimSoldier) -> void:
 			_log(SimEvent.Kind.ARRIVED, soldier.id, -1, soldier.cell)
 
 
+## Men told to gather pick rounds up from a cache beside them, one round
+## every few ticks. A man must be standing still and not pinned. It is slow,
+## and he cannot fire while he does it: that is the risk.
+func _gather_rounds() -> void:
+	for soldier: SimSoldier in soldiers:
+		soldier.gathering_now = false
+		if not soldier.in_fight() or not soldier.told_to_gather:
+			continue
+		if soldier.is_moving() or is_pinned(soldier):
+			continue
+		if soldier.rounds >= rules.max_rounds_carried:
+			continue
+		var cache: AmmoCache = cache_within_reach(soldier.cell)
+		if cache == null:
+			continue
+		soldier.gathering_now = true
+		soldier.gather_progress_ticks += 1
+		if soldier.gather_progress_ticks >= rules.gather_ticks_per_round:
+			soldier.gather_progress_ticks = 0
+			cache.rounds -= 1
+			soldier.rounds += 1
+
+
 ## Every man who is not walking, is allowed to fire, has rounds left and can
 ## see an opponent in range fires one shot. A man who is walking does not
 ## fire: that is the choice between fire and movement. A pinned man has
@@ -503,6 +593,8 @@ func _resolve_fire() -> void:
 			shooter.fire_cooldown_ticks -= 1
 			if shooter.fire_cooldown_ticks > 0:
 				continue
+		if shooter.gathering_now:
+			continue
 		var pinned: bool = is_pinned(shooter)
 		var walking: bool = shooter.is_moving() and (shooter.falling_back or not pinned)
 		if walking or not shooter.fire_allowed or shooter.rounds <= 0:
@@ -545,12 +637,27 @@ func _weapon_stops(shooter: SimSoldier) -> bool:
 
 
 func _make_casualty(soldier: SimSoldier) -> void:
+	_drop_rounds(soldier)
 	soldier.alive = false
+	soldier.gathering_now = false
 	soldier.path.clear()
 	soldier.step_ticks_left = 0
 	soldier.step_ticks_total = 0
 	soldier.suppression = 0
 	soldier.broken = false
+
+
+## What a man was carrying stays on the ground where he fell.
+func _drop_rounds(soldier: SimSoldier) -> void:
+	if soldier.rounds <= 0:
+		return
+	for cache: AmmoCache in caches:
+		if cache.cell == soldier.cell:
+			cache.rounds += soldier.rounds
+			soldier.rounds = 0
+			return
+	caches.append(AmmoCache.new(soldier.cell, soldier.rounds))
+	soldier.rounds = 0
 
 
 ## A shot, hit or miss, puts pressure on the man shot at and a little on each

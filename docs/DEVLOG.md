@@ -2,6 +2,60 @@
 
 What was done, what was decided, and why. Newest session first.
 
+## 2026-11-16, session 2 continued: a screenshot from Amit, and scavenging
+
+### Reported by Amit
+
+A screenshot of a finished fight. Read from the picture: team 1 went round the north
+and team 2 round the south, with nobody pinning the picket from the middle. The ground
+was taken in 55 seconds for six men down of ten, one above "section broken". That is
+what the numbers predict for a flank with no covering fire. He sent no comment with it.
+
+### Fixed, from that screenshot
+
+- The last line of the status strip sat on the window edge on his screen. Smaller
+  text and a bottom margin.
+- The strip still said RUNNING behind the debrief. It now says ENDED.
+
+### Done: scavenging
+
+- **Ammunition on the ground.** A scenario can place boxes. A man who falls leaves
+  what he carried where he fell. An enemy who withdraws takes his rounds with him.
+- **Gather** (`G`). The selected team picks up rounds from a box or a fallen man on or
+  next to its cell: one round every half second per man, up to forty carried. A man
+  only gathers while standing still and not pinned, and while gathering he does not
+  fire. `G` again stops it.
+- **On screen:** a small yellow box with the rounds in it, the number outlined so it
+  reads over a casualty's mark. The status strip says "gathering" for a team told to.
+- The test range has a box of 60 rounds on the track in the open, about seven cells
+  in front of the picket.
+- 205 tests pass. `make check` is clean. Gate 1 numbers unchanged (the scripted plans
+  never gather).
+
+**How to see it:** `make run`. Send a team to the box on the track and press `G`.
+Watch its rounds climb in the status strip while it stops firing. Or let a man fall
+and send a comrade to his number.
+
+**Found while testing:** a man who finished gathering went straight back to firing at
+an enemy still in range and spent part of what he had picked up. That is the rule
+working; the first version of the test had assumed otherwise.
+
+### Not verified
+
+- Whether gathering under fire is ever worth it, or always a trap. The box sits in the
+  picket's field of fire on purpose; nobody has played it.
+- Whether half a second a round is the right speed.
+
+### Decisions and why
+
+| Decision | Why |
+|---|---|
+| Rounds only, no food yet | Food belongs with hunger, which is the next item. One counted resource at a time. |
+| Gathering is an order, not automatic | Scavenging is meant to be a decision with risk. Automatic pickup would remove the decision. |
+| A gatherer does not fire | That is the risk: the team stops covering itself while it restocks. |
+| Withdrawn enemies keep their rounds | They walked off with their kit. Killing them and driving them off should leave different ground behind. |
+| Only one-cell reach | A man has to go to the rounds. Reaching across the map would remove the walk in the open. |
+
 ## 2026-11-16, session 2: Gate 1 passed; Phase 2 begins
 
 ### Decided by Amit

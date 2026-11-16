@@ -20,6 +20,8 @@ static func rules() -> SimRules:
 	# be tested one at a time.
 	result.suppression_per_shot = 0
 	result.suppression_splash = 0
+	result.gather_ticks_per_round = 5
+	result.max_rounds_carried = 12
 	return result
 
 

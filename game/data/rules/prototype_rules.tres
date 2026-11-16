@@ -18,3 +18,5 @@ pinned_fire_interval_percent = 200
 pinned_hit_percent = 50
 broken_threshold = 85
 ai_think_ticks = 10
+gather_ticks_per_round = 5
+max_rounds_carried = 40

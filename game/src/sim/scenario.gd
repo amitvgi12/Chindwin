@@ -14,6 +14,13 @@ class SoldierSpec:
 	var rounds: int
 
 
+## An ammunition box lying on the map when the scenario begins.
+class CacheSpec:
+	extends RefCounted
+	var cell: Vector2i
+	var rounds: int
+
+
 ## A change of weather at a given moment.
 class WeatherChange:
 	extends RefCounted
@@ -34,6 +41,8 @@ var cover: Array[Vector2i] = []
 var slopes: Array[Vector2i] = []
 ## The weather through the mission, earliest first. Empty means no weather.
 var weather_schedule: Array[WeatherChange] = []
+## Ammunition boxes on the map at the start.
+var caches: Array[CacheSpec] = []
 ## Tracks, each a list of cells. Drawn on the map only; no rule uses them yet.
 var tracks: Array[PackedVector2Array] = []
 var soldiers: Array[SoldierSpec] = []
@@ -78,6 +87,7 @@ static func from_json_text(text: String) -> Scenario:
 	scenario._read_weather(data.get("weather", []))
 	scenario._read_tracks(data.get("tracks", []))
 	scenario._read_soldiers(data.get("soldiers", []))
+	scenario._read_caches(data.get("caches", []))
 	if data.has("section_broken_below"):
 		scenario.section_broken_below = _as_int(
 			data.get("section_broken_below"), "section_broken_below", scenario.errors
@@ -107,6 +117,32 @@ func missing_weather(weathers: Dictionary[String, WeatherDef]) -> Array[String]:
 		if not weathers.has(change.weather_id) and not missing.has(change.weather_id):
 			missing.append(change.weather_id)
 	return missing
+
+
+func _read_caches(value: Variant) -> void:
+	if not value is Array:
+		errors.append("caches must be a list")
+		return
+	for entry: Variant in value as Array:
+		if not entry is Dictionary:
+			errors.append("each cache must be an object")
+			continue
+		var fields: Dictionary = entry
+		var position: Array[int] = _as_int_list(fields.get("cell"), 2, "cache cell", errors)
+		if position.is_empty():
+			continue
+		var spec: CacheSpec = CacheSpec.new()
+		spec.cell = Vector2i(position[0], position[1])
+		spec.rounds = _as_int(fields.get("rounds"), "cache rounds", errors)
+		var off_map: bool = (
+			spec.cell.x < 0 or spec.cell.y < 0 or spec.cell.x >= width or spec.cell.y >= height
+		)
+		if off_map or blocked.has(spec.cell) or cover.has(spec.cell):
+			errors.append("cache at %s must be on an open cell" % spec.cell)
+		elif spec.rounds < 1:
+			errors.append("cache at %s must hold at least one round" % spec.cell)
+		else:
+			caches.append(spec)
 
 
 func _read_weather(value: Variant) -> void:
