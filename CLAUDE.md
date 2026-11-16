@@ -26,10 +26,16 @@ what was decided since. Where they differ, this file wins.
   `make gate1` to see the battles behind it. Criteria 2 to 5 need Amit to play.
 - Phase 2 so far: mission outcomes (objective taken, withdrew, section broken), a
   debrief, weather as a rule (sight, slopes, stoppages; it changes on a schedule),
-  scavenging (ammunition boxes, rounds left by the fallen, a gather order), and the
-  appeal encounter (`C`: call on an Indian enemy group to come over; usually fails).
-- Phase 2 still to build: condition (hunger, fatigue, food), save and load, a
-  mission-length map, and the Gate 2 playtest sheet.
+  scavenging (ammunition boxes, rounds left by the fallen, a gather order), the
+  appeal encounter (`C`: call on an Indian enemy group to come over; usually fails),
+  and condition (hunger and fatigue hold suppression up; rations and `E` to eat; a
+  hungry man of the player's who breaks may walk away for good).
+- Phase 2 still to build: save and load, a mission-length map, and the Gate 2
+  playtest sheet.
+- **Walking away is COMPOSITE.** Starvation and desertion are each recorded, but no
+  source read so far links them (`docs/history/TO_VERIFY.md` section 5, question 8).
+  No game text may say that hunger caused desertion, and food stays "rations" until a
+  source says what the section ate (question 9).
 - **The appeal encounter is COMPOSITE.** Its method (shouted appeals in Hindustani)
   rests on second-hand sources listed in `docs/history/TO_VERIFY.md` section 9.
   Loudspeakers, leaflets, Bose-signed passes, disguise and calling NCOs by name were
@@ -195,6 +201,12 @@ tools/           toolchain and check scripts
 - **Godot has built-in global enums** such as `Side`, `Error`, `Key` and `Corner`. A
   script enum with the same name is silently shadowed and fails to compile with a
   confusing type error. That is why the soldier enum is `BattleSide`.
+- **`simulation.gd` is near gdlint's 1000-line limit.** Put a new rule in its own
+  `src/sim/*_rules.gd` file of static functions that take the `Simulation`, as
+  `ConditionRules` and `ScavengingRules` do. Do not raise the limit.
+- **Test fixtures switch rules off.** `SimFixture.rules()` turns off suppression,
+  condition and walking away, so each test checks one rule. A new rule with a cost over
+  time should be off there too, or old tests start failing for reasons unrelated to them.
 - **Frame time belongs to the view only.** `BattleView.advance()` converts seconds to
   ticks. Nothing in `src/sim/` ever sees a delta.
 - **Export templates are installed outside the repository,** in Godot's own folder

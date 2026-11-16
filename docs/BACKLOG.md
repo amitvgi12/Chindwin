@@ -9,8 +9,9 @@ L is a week or more of sessions.
 
 | # | Task | Size |
 |---|---|---|
-| 1 | `git push` and confirm CI stays green. | S |
+| 1 | `git push` the four condition commits and confirm CI stays green (last confirmed green: eb244f8). | S |
 | 1a | Try the appeal: pin the picket from the middle bank, then send a team within six cells (rain) and press `C`. Say whether 22% against a fully pinned picket feels right. | S |
+| 1b | Try condition: `O`, then `N` three times (hunger 60), then attack. Say whether the grey part of the bar is noticed, and whether a man walking away feels earned or random. | S |
 | 2 | Send the Gate 1 tallies if you have them, or at least the worst moment and whether covering fire felt worth the rounds. | S |
 | 3 | Find a library or loan copy of Shah Nawaz Khan's memoir, Fay's *The Forgotten Army* or Toye's *The Springing Tiger* (pp. 100-1 is S1's source for the one successful appeal). | M |
 
@@ -24,8 +25,8 @@ Gate 2: one complete grey-box mission, start to finish, twenty minutes or more.
 | 2 | Weather as a rule: states that change during a mission and affect sight, movement on slopes and weapon stoppages. | M | Done 16 Nov 2026 |
 | 3 | Scavenging: ammunition boxes, rounds left by the fallen, and a gather order that costs time and firepower. | M | Done 16 Nov 2026 |
 | 4 | One appeal encounter: a team calls out in Hindustani to an enemy group; usually fails and draws fire; likelier against a small, pinned, cut-off group. Method second-hand (TO_VERIFY section 9); tagged COMPOSITE. | M | Done 16 Nov 2026 |
-| 5 | Condition: hunger, fatigue and food as the slow half of will to fight, and the player's own men walking away (pillar 4, GDD section 4). | M | Next |
-| 6 | Save and load. | M | |
+| 5 | Condition: hunger, fatigue and food as the slow half of will to fight, and the player's own men walking away (pillar 4, GDD section 4). | M | Done 16 Nov 2026 |
+| 6 | Save and load. The snapshot misses some state (orders in progress, eating, walking away); a save must carry all of it. | M | Next |
 | 7 | A mission-length map: an approach, a picket, then the road-block. | L | |
 | 8 | Gate 2 playtest sheet. | S | |
 
@@ -42,7 +43,13 @@ Carried over from Phase 1:
 - Routes take the quickest way with no regard for danger.
 - Withdrawn enemies take their rounds with them, so driving the picket off leaves less
   to scavenge than killing it. Deliberate, but worth checking it reads that way.
-- Food is not counted yet. Pillar 3 says ammunition and food; food comes with condition.
+- Hunger rises one point a minute, so on the one-minute test range it hardly moves. The
+  mission-length map should start the section hungry and give it food to find.
+- Sickness is listed in GDD section 4 but has no rule. Leave it out until the mission
+  map shows whether hunger and fatigue are enough.
+- A man walking away still counts as "fit" in the status strip until he has gone.
+- `simulation.gd` is near the 1000-line lint limit. New rules go in their own
+  `*_rules.gd` file, as `ConditionRules`, `ScavengingRules` and `PicketAi` do.
 
 ## Phase 1: done
 
@@ -73,6 +80,7 @@ Carried over from Phase 1:
 | 5 | Find a 1944 map of the Khanjol and Mitlong Khunou area and establish its copyright status. | M |
 | 6 | Find what happened to villages in the Gandhi Brigade's area. | M |
 | 7 | Write `docs/history/mission-01.md` once items 1 to 4 have a checked source. | S |
+| 8 | Find whether hunger drove INA desertion on the Imphal front, and what a section ate and carried (TO_VERIFY section 5, questions 8 and 9). | M |
 
 ## Later
 

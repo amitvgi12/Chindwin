@@ -2,6 +2,86 @@
 
 What was done, what was decided, and why. Newest session first.
 
+## 2026-11-16, session 3: condition (hunger, fatigue, food, walking away)
+
+### Done
+
+- **Hunger and fatigue**, 0 to 100 per man. Hunger rises one point a minute. Fatigue
+  rises one point per three seconds of walking (so wet slopes, which are slower, tire
+  more) and falls one point per five seconds standing still. A scenario can set either
+  per side at the start.
+- **They hold up suppression.** A man's suppression never fades below 30% of his hunger
+  plus 20% of his fatigue, capped at 40, which is below the pinned level of 50. That is
+  GDD section 4's "condition lowers the level that will can recover to". A hungry man is
+  pinned and broken by less fire; hunger alone never pins him.
+- **Food.** Rations per man (three at most). `E` makes each hungry man of the team with
+  a ration eat one: three seconds, no firing, 40 hunger off. Moving puts it away; a
+  pinned man waits. Boxes can hold rations, the fallen leave theirs with their rounds,
+  and `G` picks up rounds first, then food.
+- **Walking away.** When one of the player's men breaks, one roll: nothing up to hunger
+  40, then rising to 30% at hunger 100. He walks back to where he started, even when
+  pinned, takes no orders, does not fire, and is gone when he gets there. The debrief
+  counts him. No dice are rolled below hunger 40, so a fed section's battles are
+  untouched; a test checks it.
+- **On screen:** food and hunger per team in the status strip, "eating", a grey part at
+  the left of each bar for what condition holds up, "N food" under a box or a fallen
+  man's kit, a message when a man walks away, and that man drawn faded with no
+  selection ring or route. The debug overlay gives each team's hunger, fatigue, held
+  level and walk-away chance. `N` (overlay on) makes the section 20 hungrier.
+- **The test range** gives each man one ration and puts four in the box. The section
+  starts fed, so Gate 1 still measures a fresh section.
+- **Code:** condition and gathering live in `ConditionRules` and `ScavengingRules`,
+  because `simulation.gd` reached the 1000-line lint limit.
+- 262 tests pass. `make check` is clean.
+
+**How to see it:** `make run`, press `O` for the overlay, then `N` three times (hunger
+60). The bars over your men now start grey. Attack as usual: men pin sooner, and when
+one breaks he may get up and walk away, with a message across the top. Pull a team back
+out of fire and press `E`: it says "eating" for three seconds, hunger drops by 40 and the
+grey shrinks. `make screenshot HUNGER=70` shows the same in a picture.
+
+### Measured: what hunger costs (200 battles each, pin then flank)
+
+| Section starts | Succeeded | Fit of 10 | Walked away per battle |
+|---|---|---|---|
+| Fed (Gate 1) | 164 | 8.0 | 0 |
+| Hunger 50 | 150 | 7.7 | 0.06 |
+| Hunger 80 | 147 | 7.2 | 0.45 |
+
+`make gate1` now prints the two hungry rows. The Gate 1 plans themselves moved a little,
+from the light fatigue of a flank walk: pin-then-flank 161 to 164, flank without fire
+132 to 134, the rest unchanged. The recorded battle was re-recorded twice, once for each
+new snapshot field (condition, then rations). Every earlier field stayed the same.
+
+### History tag
+
+COMPOSITE. Starvation in the campaign (TO_VERIFY section 1, row 7) and desertion from
+the Gandhi and Azad Brigades (section 2) are each recorded from S1. No source read so
+far links the two; the walking-away rule is the game's link and is flagged as open
+question 8 in TO_VERIFY section 5. What a ration was is unknown (question 9), so the
+game says only "food" and "ration". Where a man who walks away goes is not shown or said.
+
+### Not verified
+
+- Whether a grey part a quarter of a 24-pixel bar is noticed in play.
+- Whether 30% at hunger 100 feels like "hunger can make your men walk away" or like a
+  random punishment. It is a first guess.
+- Whether eating under the picket's eye is ever worth three seconds of silence.
+- On the one-minute test range hunger barely rises (one point a minute). It needs the
+  mission-length map, with a section that starts hungry, to show what it does.
+
+### Decisions and why
+
+| Decision | Why |
+|---|---|
+| Condition is a floor under suppression, not a second meter | GDD section 4: one will-to-fight value. The floor is the "level that will can recover to". |
+| Floor capped below the pinned level | A starving man should pin sooner, not be pinned forever while nobody shoots at him. |
+| Roll once, at the moment he breaks | Breaking is the pressure in "hunger and pressure". Rolling every tick would make it near certain. |
+| Only the player's men walk away | Pillar 4 is about the player's own men. The enemy already falls back and can come over. |
+| A man walking away takes no orders | Otherwise the player could order him back at once and the rule would cost nothing. |
+| "Rations", not a named food | Nothing has been read about what the section ate. |
+| Fatigue only from walking | Rain already makes slopes slower, so it tires more without a separate rule. Sickness is in GDD section 4 but has no rule yet. |
+
 ## 2026-11-16, session 2 continued: the appeal encounter
 
 ### Done

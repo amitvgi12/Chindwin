@@ -116,6 +116,13 @@ These came from memory during this session. None may be used.
    drawn, along with that map's copyright status.
 7. Which villages lay in the Gandhi Brigade's area, who lived there, and what happened
    to them. Section 6 of the brief requires this and nothing was found.
+8. Whether hunger drove desertion. Starvation (section 1, row 7) and desertion
+   (section 2) are both recorded from S1, but no source read so far links the two. The
+   walking-away rule built on 16 November 2026 makes that link, so it is tagged
+   COMPOSITE. Until a source says more, no game text may claim that hunger caused desertion.
+9. What the section ate, how much it carried and how it was resupplied. Nothing has been
+   read. The game counts "rations" and nothing more specific; no ration name, food or
+   quantity may enter game text until a source gives one.
 
 ## 6. What this suggests for mission 1 (Claude's inference, not a decision)
 
