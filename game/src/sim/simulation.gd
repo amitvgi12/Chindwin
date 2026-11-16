@@ -9,7 +9,7 @@ extends RefCounted
 
 class Order:
 	extends RefCounted
-	enum Kind { MOVE, FIRE_CONTROL, FALL_BACK, GATHER, APPEAL }
+	enum Kind { MOVE, FIRE_CONTROL, FALL_BACK, GATHER, APPEAL, EAT }
 	var kind: Kind
 	var team_id: int
 	## Where to walk to, for MOVE.
@@ -44,7 +44,7 @@ var events: Array[SimEvent] = []
 var fallback_cell: Vector2i = Vector2i.ZERO
 ## What the enemy decided and why, one line per decision, for reading afterwards.
 var ai_log: Array[String] = []
-## Rounds lying on the ground. A cache stays in the list when it is empty.
+## Rounds and rations lying on the ground. A cache stays in the list when it is empty.
 var caches: Array[AmmoCache] = []
 ## The weather now, or null when the scenario has none.
 var weather: WeatherDef
@@ -100,6 +100,7 @@ func _init(
 		soldier.start_cell = spec.cell
 		soldier.weapon = weapons.get(spec.weapon_id)
 		soldier.rounds = spec.rounds
+		soldier.rations = spec.rations
 		var start: Scenario.StartingCondition = scenario.condition_for(spec.side)
 		soldier.hunger = start.hunger
 		soldier.fatigue = start.fatigue
@@ -107,7 +108,7 @@ func _init(
 		soldiers.append(soldier)
 		_rounds_at_start[spec.side] = _rounds_at_start.get(spec.side, 0) + spec.rounds
 	for cache_spec: Scenario.CacheSpec in scenario.caches:
-		caches.append(AmmoCache.new(cache_spec.cell, cache_spec.rounds))
+		caches.append(AmmoCache.new(cache_spec.cell, cache_spec.rounds, cache_spec.rations))
 	if not _weather_schedule.is_empty() and _weather_schedule[0].at_tick == 0:
 		set_weather(_weather_schedule[0].weather_id)
 
@@ -170,6 +171,29 @@ func order_gather(team_id: int, gather: bool) -> bool:
 	order.gather = gather
 	_pending_orders.append(order)
 	return true
+
+
+## Tell a player team to eat: each man who is hungry and has a ration eats
+## one, which takes eat_ticks. A man eats only while standing still and not
+## pinned, and does not fire while he eats. A move or fall-back order puts
+## the food away uneaten. Returns false when nobody in the team can eat.
+func order_eat(team_id: int) -> bool:
+	var anyone: bool = false
+	for soldier: SimSoldier in living(SimSoldier.BattleSide.PLAYER, team_id):
+		if can_eat(soldier):
+			anyone = true
+	if not anyone:
+		return false
+	var order: Order = Order.new()
+	order.kind = Order.Kind.EAT
+	order.team_id = team_id
+	_pending_orders.append(order)
+	return true
+
+
+## True when a man has a ration and is at all hungry.
+func can_eat(soldier: SimSoldier) -> bool:
+	return ConditionRules.can_eat(soldier)
 
 
 ## Tell a player team to call out to the nearest enemy group within earshot,
@@ -253,7 +277,7 @@ func step() -> void:
 	_follow_weather_schedule()
 	_apply_pending_orders()
 	_fade_suppression()
-	_wear_condition()
+	ConditionRules.wear(self)
 	_update_broken()
 	if rules.ai_think_ticks > 0 and tick % rules.ai_think_ticks == 0:
 		_picket_ai.think(self)
@@ -262,6 +286,7 @@ func step() -> void:
 		if soldier.is_moving() and (soldier.falling_back or not is_pinned(soldier)):
 			_advance_movement(soldier)
 	_gather_rounds()
+	ConditionRules.eat(self)
 	_advance_appeal()
 	_resolve_fire()
 	_outcome = _work_out_outcome()
@@ -427,11 +452,7 @@ func is_pinned(soldier: SimSoldier) -> bool:
 ## The least suppression a man can have, given how hungry and tired he is.
 ## Fire pushes him up from here, and when it stops he only recovers to here.
 func condition_floor(soldier: SimSoldier) -> int:
-	var floor_value: int = (
-		soldier.hunger * rules.hunger_floor_percent / 100
-		+ soldier.fatigue * rules.fatigue_floor_percent / 100
-	)
-	return clampi(floor_value, 0, rules.condition_floor_max)
+	return ConditionRules.floor_for(rules, soldier)
 
 
 ## How many living members of a team are pinned.
@@ -459,12 +480,37 @@ func rounds_on_the_ground() -> int:
 	return total
 
 
-## The cache with rounds in it on or next to a cell, nearest first, or null.
+## Rations lying on the ground across the whole map.
+func rations_on_the_ground() -> int:
+	var total: int = 0
+	for cache: AmmoCache in caches:
+		total += cache.rations
+	return total
+
+
+## Rations carried by the living members of a team.
+func team_rations(side: SimSoldier.BattleSide, team_id: int) -> int:
+	var total: int = 0
+	for soldier: SimSoldier in living(side, team_id):
+		total += soldier.rations
+	return total
+
+
+## How many men of a team are eating this tick.
+func eating_count(side: SimSoldier.BattleSide, team_id: int) -> int:
+	var count: int = 0
+	for soldier: SimSoldier in living(side, team_id):
+		if soldier.eating_now:
+			count += 1
+	return count
+
+
+## The cache with anything in it on or next to a cell, nearest first, or null.
 func cache_within_reach(cell: Vector2i) -> AmmoCache:
 	var best: AmmoCache = null
 	var best_distance: int = 3
 	for cache: AmmoCache in caches:
-		if cache.rounds <= 0:
+		if not cache.has_anything():
 			continue
 		var apart: Vector2i = (cache.cell - cell).abs()
 		var distance: int = maxi(apart.x, apart.y)
@@ -530,9 +576,11 @@ func snapshot() -> String:
 			1 if soldier.withdrawn else 0,
 			soldier.hunger,
 			soldier.fatigue,
+			soldier.rations,
 		]
 		parts.append("%d:%s" % [soldier.id, ",".join(fields.map(str))])
 	parts.append("ground=%d" % rounds_on_the_ground())
+	parts.append("food=%d" % rations_on_the_ground())
 	return " ".join(parts)
 
 
@@ -547,6 +595,9 @@ func _apply_pending_orders() -> void:
 			_start_move(team, order)
 		elif order.kind == Order.Kind.APPEAL:
 			_start_appeal(order.team_id)
+		elif order.kind == Order.Kind.EAT:
+			ConditionRules.start_eating(team)
+			_log(SimEvent.Kind.ORDER_EAT, order.team_id, -1, Vector2i.ZERO)
 		elif order.kind == Order.Kind.FALL_BACK:
 			_start_fall_back(team, order)
 		else:
@@ -626,7 +677,7 @@ func _advance_appeal() -> void:
 	# The only dice of the appeal. Rolled once, when the answer comes.
 	if _rng.randi_range(1, 100) <= chance:
 		for enemy: SimSoldier in living(SimSoldier.BattleSide.ENEMY, target):
-			_drop_rounds(enemy)
+			_drop_kit(enemy)
 			enemy.came_over = true
 			withdraw(enemy)
 		note_ai("picket %d comes over in answer to the appeal (chance %d%%)" % [target, chance])
@@ -643,6 +694,7 @@ func _advance_appeal() -> void:
 func _start_move(team: Array[SimSoldier], order: Order) -> void:
 	if order.team_id == _appeal_caller_team:
 		_cancel_appeal()
+	ConditionRules.stop_eating(team)
 	_teams_withdrawing.erase(order.team_id)
 	# Cells other soldiers stand on, or are walking to, are not available.
 	var taken: Dictionary[Vector2i, bool] = {}
@@ -667,6 +719,7 @@ func _start_move(team: Array[SimSoldier], order: Order) -> void:
 func _start_fall_back(team: Array[SimSoldier], order: Order) -> void:
 	if order.team_id == _appeal_caller_team:
 		_cancel_appeal()
+	ConditionRules.stop_eating(team)
 	_teams_withdrawing[order.team_id] = true
 	for soldier: SimSoldier in team:
 		# His own starting cell, or the nearest free one if somebody is on it.
@@ -738,17 +791,25 @@ func _gather_rounds() -> void:
 			continue
 		if soldier.is_moving() or is_pinned(soldier):
 			continue
-		if soldier.rounds >= rules.max_rounds_carried:
-			continue
 		var cache: AmmoCache = cache_within_reach(soldier.cell)
 		if cache == null:
 			continue
+		# Rounds first, then food.
+		var wants_rounds: bool = cache.rounds > 0 and soldier.rounds < rules.max_rounds_carried
+		var wants_food: bool = cache.rations > 0 and soldier.rations < rules.max_rations_carried
+		if not wants_rounds and not wants_food:
+			continue
 		soldier.gathering_now = true
 		soldier.gather_progress_ticks += 1
-		if soldier.gather_progress_ticks >= rules.gather_ticks_per_round:
-			soldier.gather_progress_ticks = 0
+		if soldier.gather_progress_ticks < rules.gather_ticks_per_round:
+			continue
+		soldier.gather_progress_ticks = 0
+		if wants_rounds:
 			cache.rounds -= 1
 			soldier.rounds += 1
+		else:
+			cache.rations -= 1
+			soldier.rations += 1
 
 
 ## Every man who is not walking, is allowed to fire, has rounds left and can
@@ -767,7 +828,7 @@ func _resolve_fire() -> void:
 			shooter.fire_cooldown_ticks -= 1
 			if shooter.fire_cooldown_ticks > 0:
 				continue
-		if shooter.gathering_now or shooter.calling_out:
+		if shooter.gathering_now or shooter.eating_now or shooter.calling_out:
 			continue
 		var pinned: bool = is_pinned(shooter)
 		var walking: bool = shooter.is_moving() and (shooter.falling_back or not pinned)
@@ -811,9 +872,11 @@ func _weapon_stops(shooter: SimSoldier) -> bool:
 
 
 func _make_casualty(soldier: SimSoldier) -> void:
-	_drop_rounds(soldier)
+	_drop_kit(soldier)
 	soldier.alive = false
 	soldier.gathering_now = false
+	soldier.eating_now = false
+	soldier.told_to_eat = false
 	soldier.path.clear()
 	soldier.step_ticks_left = 0
 	soldier.step_ticks_total = 0
@@ -822,16 +885,20 @@ func _make_casualty(soldier: SimSoldier) -> void:
 
 
 ## What a man was carrying stays on the ground where he fell.
-func _drop_rounds(soldier: SimSoldier) -> void:
-	if soldier.rounds <= 0:
+func _drop_kit(soldier: SimSoldier) -> void:
+	if soldier.rounds <= 0 and soldier.rations <= 0:
 		return
+	var here: AmmoCache = null
 	for cache: AmmoCache in caches:
 		if cache.cell == soldier.cell:
-			cache.rounds += soldier.rounds
-			soldier.rounds = 0
-			return
-	caches.append(AmmoCache.new(soldier.cell, soldier.rounds))
+			here = cache
+	if here == null:
+		here = AmmoCache.new(soldier.cell, 0, 0)
+		caches.append(here)
+	here.rounds += soldier.rounds
+	here.rations += soldier.rations
 	soldier.rounds = 0
+	soldier.rations = 0
 
 
 ## A shot, hit or miss, puts pressure on the man shot at and a little on each
@@ -869,26 +936,6 @@ func _fade_suppression() -> void:
 	for soldier: SimSoldier in soldiers:
 		if soldier.suppression > 0:
 			soldier.suppression -= 1
-
-
-## Hunger creeps up for everyone. Walking tires a man; standing still rests
-## him. Then nobody's suppression is left below what his condition allows.
-## Counted on the shared tick, so no man carries a private clock.
-func _wear_condition() -> void:
-	var hungrier: bool = rules.hunger_rise_ticks > 0 and tick % rules.hunger_rise_ticks == 0
-	var tiring: bool = rules.fatigue_walk_ticks > 0 and tick % rules.fatigue_walk_ticks == 0
-	var resting: bool = rules.fatigue_rest_ticks > 0 and tick % rules.fatigue_rest_ticks == 0
-	for soldier: SimSoldier in soldiers:
-		if not soldier.in_fight():
-			continue
-		if hungrier:
-			soldier.hunger = mini(100, soldier.hunger + 1)
-		var walking: bool = soldier.is_moving() and (soldier.falling_back or not is_pinned(soldier))
-		if walking and tiring:
-			soldier.fatigue = mini(100, soldier.fatigue + 1)
-		elif not soldier.is_moving() and resting:
-			soldier.fatigue = maxi(0, soldier.fatigue - 1)
-		soldier.suppression = maxi(soldier.suppression, condition_floor(soldier))
 
 
 ## A man breaks at the broken level and stays broken until the pressure has

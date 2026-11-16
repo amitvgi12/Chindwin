@@ -68,8 +68,17 @@ extends Resource
 ## hunger alone.
 @export var condition_floor_max: int = 40
 
+@export_group("Food")
+## Ticks a man needs to eat a ration. He does not fire meanwhile.
+@export var eat_ticks: int = 30
+## Hunger one ration takes away.
+@export var ration_hunger_relief: int = 40
+## The most rations one man can carry.
+@export var max_rations_carried: int = 3
+
 @export_group("Scavenging")
-## Ticks a man needs to pick up one round from the ground beside him.
+## Ticks a man needs to pick up one round, or one ration, from the ground
+## beside him.
 @export var gather_ticks_per_round: int = 5
 ## The most rounds one man can carry.
 @export var max_rounds_carried: int = 40

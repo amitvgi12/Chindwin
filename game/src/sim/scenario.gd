@@ -12,13 +12,15 @@ class SoldierSpec:
 	## File name, without extension, of a weapon in data/weapons/.
 	var weapon_id: String
 	var rounds: int
+	var rations: int = 0
 
 
-## An ammunition box lying on the map when the scenario begins.
+## A supply box lying on the map when the scenario begins: rounds, rations or both.
 class CacheSpec:
 	extends RefCounted
 	var cell: Vector2i
-	var rounds: int
+	var rounds: int = 0
+	var rations: int = 0
 
 
 ## How fed and rested one side's men are when the scenario begins.
@@ -48,7 +50,7 @@ var cover: Array[Vector2i] = []
 var slopes: Array[Vector2i] = []
 ## The weather through the mission, earliest first. Empty means no weather.
 var weather_schedule: Array[WeatherChange] = []
-## Ammunition boxes on the map at the start.
+## Supply boxes on the map at the start.
 var caches: Array[CacheSpec] = []
 ## Tracks, each a list of cells. Drawn on the map only; no rule uses them yet.
 var tracks: Array[PackedVector2Array] = []
@@ -188,14 +190,17 @@ func _read_caches(value: Variant) -> void:
 			continue
 		var spec: CacheSpec = CacheSpec.new()
 		spec.cell = Vector2i(position[0], position[1])
-		spec.rounds = _as_int(fields.get("rounds"), "cache rounds", errors)
+		spec.rounds = _as_int(fields.get("rounds", 0), "cache rounds", errors)
+		spec.rations = _as_int(fields.get("rations", 0), "cache rations", errors)
 		var off_map: bool = (
 			spec.cell.x < 0 or spec.cell.y < 0 or spec.cell.x >= width or spec.cell.y >= height
 		)
 		if off_map or blocked.has(spec.cell) or cover.has(spec.cell):
 			errors.append("cache at %s must be on an open cell" % spec.cell)
-		elif spec.rounds < 1:
-			errors.append("cache at %s must hold at least one round" % spec.cell)
+		elif spec.rounds < 0 or spec.rations < 0:
+			errors.append("cache at %s cannot hold a negative amount" % spec.cell)
+		elif spec.rounds + spec.rations < 1:
+			errors.append("cache at %s must hold at least one round or ration" % spec.cell)
 		else:
 			caches.append(spec)
 
@@ -303,6 +308,10 @@ func _read_soldiers(value: Variant) -> void:
 		spec.rounds = _as_int(fields.get("rounds"), "soldier rounds", errors)
 		if spec.rounds < 0:
 			errors.append("soldier rounds cannot be negative")
+			continue
+		spec.rations = _as_int(fields.get("rations", 0), "soldier rations", errors)
+		if spec.rations < 0:
+			errors.append("soldier rations cannot be negative")
 			continue
 		var position: Array[int] = _as_int_list(fields.get("cell"), 2, "soldier cell", errors)
 		if position.is_empty():

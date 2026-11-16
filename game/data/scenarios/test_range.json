@@ -26,22 +26,22 @@
     {"at_tick": 1100, "state": "rain"}
   ],
   "caches": [
-    {"cell": [28, 9], "rounds": 60}
+    {"cell": [28, 9], "rounds": 60, "rations": 4}
   ],
   "enemy_fallback": [38, 9],
   "section_broken_below": 4,
   "appealable_enemy_teams": [1],
   "soldiers": [
-    {"side": "player", "team": 1, "cell": [3, 8], "weapon": "rifle", "rounds": 20},
-    {"side": "player", "team": 1, "cell": [3, 9], "weapon": "rifle", "rounds": 20},
-    {"side": "player", "team": 1, "cell": [3, 10], "weapon": "rifle", "rounds": 20},
-    {"side": "player", "team": 1, "cell": [4, 9], "weapon": "rifle", "rounds": 20},
-    {"side": "player", "team": 1, "cell": [4, 10], "weapon": "rifle", "rounds": 20},
-    {"side": "player", "team": 2, "cell": [3, 13], "weapon": "rifle", "rounds": 20},
-    {"side": "player", "team": 2, "cell": [3, 14], "weapon": "rifle", "rounds": 20},
-    {"side": "player", "team": 2, "cell": [3, 15], "weapon": "rifle", "rounds": 20},
-    {"side": "player", "team": 2, "cell": [4, 14], "weapon": "rifle", "rounds": 20},
-    {"side": "player", "team": 2, "cell": [4, 15], "weapon": "rifle", "rounds": 20},
+    {"side": "player", "team": 1, "cell": [3, 8], "weapon": "rifle", "rounds": 20, "rations": 1},
+    {"side": "player", "team": 1, "cell": [3, 9], "weapon": "rifle", "rounds": 20, "rations": 1},
+    {"side": "player", "team": 1, "cell": [3, 10], "weapon": "rifle", "rounds": 20, "rations": 1},
+    {"side": "player", "team": 1, "cell": [4, 9], "weapon": "rifle", "rounds": 20, "rations": 1},
+    {"side": "player", "team": 1, "cell": [4, 10], "weapon": "rifle", "rounds": 20, "rations": 1},
+    {"side": "player", "team": 2, "cell": [3, 13], "weapon": "rifle", "rounds": 20, "rations": 1},
+    {"side": "player", "team": 2, "cell": [3, 14], "weapon": "rifle", "rounds": 20, "rations": 1},
+    {"side": "player", "team": 2, "cell": [3, 15], "weapon": "rifle", "rounds": 20, "rations": 1},
+    {"side": "player", "team": 2, "cell": [4, 14], "weapon": "rifle", "rounds": 20, "rations": 1},
+    {"side": "player", "team": 2, "cell": [4, 15], "weapon": "rifle", "rounds": 20, "rations": 1},
     {"side": "enemy", "team": 1, "cell": [34, 8], "weapon": "rifle", "rounds": 40},
     {"side": "enemy", "team": 1, "cell": [34, 9], "weapon": "rifle", "rounds": 40},
     {"side": "enemy", "team": 1, "cell": [34, 10], "weapon": "rifle", "rounds": 40},

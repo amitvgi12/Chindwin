@@ -24,6 +24,14 @@ var step_ticks_total: int = 0
 var weapon: WeaponDef
 ## Rounds he has left.
 var rounds: int = 0
+## Rations he carries. Each one eaten takes some of his hunger away.
+var rations: int = 0
+## True when his team has been told to eat. He eats one ration, then stops.
+var told_to_eat: bool = false
+## True on a tick in which he is actually eating. He does not fire.
+var eating_now: bool = false
+## Ticks spent on the meal so far.
+var eat_progress_ticks: int = 0
 ## False when his team has been told to hold fire.
 var fire_allowed: bool = true
 ## Ticks until he may fire again.

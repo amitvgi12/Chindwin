@@ -27,6 +27,10 @@ static func rules() -> SimRules:
 	result.hunger_floor_percent = 30
 	result.fatigue_floor_percent = 20
 	result.condition_floor_max = 40
+	# Food: a meal takes 10 ticks and takes 40 hunger away; three rations at most.
+	result.eat_ticks = 10
+	result.ration_hunger_relief = 40
+	result.max_rations_carried = 3
 	result.gather_ticks_per_round = 5
 	result.max_rounds_carried = 12
 	# Appeals: heard 8 cells off, answered after 10 ticks, never work unless a
