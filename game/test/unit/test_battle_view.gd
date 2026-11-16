@@ -203,26 +203,40 @@ func test_the_status_strip_counts_pinned_men() -> void:
 	assert_string_contains(view.hud_text(), "Team 1: 5 of 5 fit, 1 pinned")
 
 
-func test_the_banner_reports_a_cleared_picket_with_the_cost() -> void:
+func test_the_debrief_reports_a_taken_objective_with_its_cost() -> void:
 	var enemies: Array[SimSoldier] = view.sim.living(SimSoldier.BattleSide.ENEMY, 1)
 	enemies[0].alive = false
 	for index: int in range(1, enemies.size()):
 		view.sim.withdraw(enemies[index])
 	_first_of_team(1).alive = false
 	view.toggle_pause()
+	view.advance(0.1)
 	view._process(0.0)
-	assert_string_contains(view.banner_text(), "1 fell, 3 withdrew")
-	assert_string_contains(view.banner_text(), "9 of 10 men fit")
-	assert_string_contains(view.hud_text(), "3 withdrew")
+	assert_string_contains(view.banner_text(), "The picket has gone")
+	assert_string_contains(view.banner_text(), "9 of 10 fit, 1 down")
+	assert_string_contains(view.banner_text(), "1 down, 3 got away, 0 still holding")
+	assert_string_contains(view.banner_text(), "left of 200")
 
 
-func test_the_banner_reports_a_lost_section() -> void:
+func test_the_debrief_reports_a_broken_section() -> void:
 	for soldier: SimSoldier in view.sim.soldiers:
-		if soldier.side == SimSoldier.BattleSide.PLAYER:
+		if soldier.side == SimSoldier.BattleSide.PLAYER and soldier.id >= 3:
 			soldier.alive = false
 	view.toggle_pause()
+	view.advance(0.1)
 	view._process(0.0)
-	assert_string_contains(view.banner_text(), "Your section is finished")
+	assert_string_contains(view.banner_text(), "Your section can no longer fight")
+	assert_string_contains(view.banner_text(), "3 of 10 fit, 7 down")
+
+
+func test_time_stops_once_the_mission_has_ended() -> void:
+	for soldier: SimSoldier in view.sim.living(SimSoldier.BattleSide.ENEMY, 1):
+		soldier.alive = false
+	view.toggle_pause()
+	view.advance(0.1)
+	var ended_at: int = view.sim.tick
+	view.advance(0.3)
+	assert_eq(view.sim.tick, ended_at)
 
 
 func test_b_orders_the_selected_team_to_fall_back() -> void:

@@ -9,9 +9,11 @@ what was decided since. Where they differ, this file wins.
 
 ## Current state
 
-- **Gate 0 passed on 15 November 2026. The Phase 1 build is ready and waiting at
-  Gate 1** for Amit to play it against `docs/GATE1_PLAYTEST.md`. Do not start Phase 2
-  work until he reports that Gate 1 has passed.
+- **Gate 1 passed on 16 November 2026, on Amit's word.** He confirmed it without
+  sending the tallies from `docs/GATE1_PLAYTEST.md`, so no playtest data is on record.
+  Ask for it when a design question turns on how the fight feels.
+- **Phase 2 is under way:** the systems that make it this game. Gate 2 is one complete
+  grey-box mission, start to finish, of twenty minutes or more.
 - Built so far: the simulation core; a test-range map; two teams that can be
   selected, moved and told to hold fire; rifles with counted ammunition for both
   sides; cover that protects only against fire coming over it; waypoints;
@@ -22,8 +24,10 @@ what was decided since. Where they differ, this file wins.
   the Phase 3 art decision.
 - **Gate 1 criterion 1 is met and is now a test** (`test_gate1_criterion.gd`). Run
   `make gate1` to see the battles behind it. Criteria 2 to 5 need Amit to play.
-- Not built yet (all Phase 2): condition (hunger, fatigue), weather as a rule,
-  scavenging, appeals, formal win and lose conditions, save and load.
+- Phase 2 so far: mission outcomes (objective taken, withdrew, section broken) and a
+  debrief.
+- Phase 2 still to build: weather as a rule, scavenging, condition (hunger,
+  fatigue), one appeal encounter, save and load, and a mission-length map.
 - CI is green on GitHub, including the recorded battle, so the simulation gives the
   same result on macOS and Linux so far.
 - **Purpose: this build is a demo.** Amit may later take the game towards his earlier

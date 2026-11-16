@@ -29,7 +29,7 @@ budget.
 | Phase | Contents | Gate |
 |---|---|---|
 | 0. Foundations | Documents, repository, Godot project, tests, export command, CI. No gameplay code. | Gate 0: **passed 15 November 2026.** |
-| 1. Grey-box combat | Flat test map, one section in two teams, one enemy picket. Movement, line of sight, cover, firing, suppression, enemy behaviour, orders with pause, debug overlay, seeded simulation. | Gate 1: see below. |
+| 1. Grey-box combat | Flat test map, one section in two teams, one enemy picket. Movement, line of sight, cover, firing, suppression, enemy behaviour, orders with pause, debug overlay, seeded simulation. | Gate 1: **passed 16 November 2026** on Amit's word. Criterion 1 is an automated test. No tallies were recorded for criteria 2 to 5. |
 | 2. The systems that make it this game | Weather states and effects. Ammunition, scavenging, fatigue. One appeal encounter. Win, lose and withdraw. Save and load. | Gate 2: one complete grey-box mission of 20 minutes or more. |
 | 3. Vertical slice | Art direction choice, art for this one mission, audio, briefing and debrief text, options, key rebinding, text size, colour-blind-safe indicators, Hindi. | Gate 3: five strangers play it. |
 | 4. Steam page and demo | Store copy, capsule brief, trailer shot list, demo build, press kit. | Decision on missions 2 and 3. |

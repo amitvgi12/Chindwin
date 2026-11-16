@@ -10,30 +10,31 @@ L is a week or more of sessions.
 | # | Task | Size |
 |---|---|---|
 | 1 | `git push` and confirm CI stays green. | S |
-| 2 | **Gate 1.** Play one sitting following `docs/GATE1_PLAYTEST.md` and paste the answers back. | M |
-| 3 | Find a library or loan copy of Shah Nawaz Khan's memoir or Fay's *The Forgotten Army*. | M |
+| 2 | Send the Gate 1 tallies if you have them, or at least the worst moment and whether covering fire felt worth the rounds. | S |
+| 3 | Find a library or loan copy of Shah Nawaz Khan's memoir or Fay's *The Forgotten Army*. The appeal encounter needs a source for how appeals were made. | M |
 
-## Phase 1: remaining
+## Phase 2: the systems that make it this game
 
-Nothing is planned until Amit reports on Gate 1. What he reports decides the next
-change. Two things the numbers already suggest:
+Gate 2: one complete grey-box mission, start to finish, twenty minutes or more.
 
-- A frontal attack is wiped out to the last man, which may read as unfair. The
-  fall-back order now gives a way out; whether that is enough is for the playtest.
-- Covering fire adds less than the flank itself does.
+| # | Task | Size | State |
+|---|---|---|---|
+| 1 | Mission outcomes and a debrief: objective taken, withdrew, section broken. | S | Done 16 Nov 2026 |
+| 2 | Weather as a rule: states that change during a mission and affect sight, movement on slopes and weapon stoppages. | M | Next |
+| 3 | Scavenging: taking rounds from where the enemy stood, at the cost of time in the open. | M | |
+| 4 | Condition: hunger and fatigue as the slow half of will to fight. | M | |
+| 5 | One appeal encounter, with a real chance of failure. Blocked on a source for the method; until then it is labelled INVENTED. | M | |
+| 6 | Save and load. | M | |
+| 7 | A mission-length map: an approach, a picket, then the road-block. | L | |
+| 8 | Gate 2 playtest sheet. | S | |
 
-Known rough edges:
+Carried over from Phase 1:
 
 - Soldiers walk through each other on the way; they only end on separate cells.
-- Rain is decoration. It affects nothing until Phase 2.
 - The track is decoration. Walking on it is no faster.
 - The picket never moves to face a flank. It holds or it leaves.
 - A team falls back only to where it started, not to a place of your choosing.
-
-## Phase 2: not started, do not start before Gate 1 passes
-
-Weather states and effects. Ammunition scavenging. Fatigue and hunger. One appeal
-encounter. Win, lose and withdraw conditions. Save and load.
+- Covering fire adds less than the flank itself does (95% against 88% success).
 
 ## Phase 1: done
 

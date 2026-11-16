@@ -17,6 +17,7 @@
     [[0, 10], [14, 10], [16, 12], [23, 12], [25, 10], [39, 10]]
   ],
   "enemy_fallback": [38, 9],
+  "section_broken_below": 4,
   "soldiers": [
     {"side": "player", "team": 1, "cell": [3, 8], "weapon": "rifle", "rounds": 20},
     {"side": "player", "team": 1, "cell": [3, 9], "weapon": "rifle", "rounds": 20},

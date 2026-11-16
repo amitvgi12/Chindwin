@@ -300,29 +300,75 @@ func _refresh_hud() -> void:
 	_hud_text.text = "\n".join(lines)
 
 
-## The banner shows how the fight ended, or that the game is paused.
+## The banner shows the debrief once the mission has ended, and otherwise
+## says when the game is paused.
 func _refresh_banner() -> void:
-	var player: SimSoldier.BattleSide = SimSoldier.BattleSide.PLAYER
-	var enemy: SimSoldier.BattleSide = SimSoldier.BattleSide.ENEMY
-	if sim.in_fight_count(enemy) == 0:
-		_paused_banner.text = (
-			tr("HUD_OUTCOME_CLEARED")
-			. format(
-				{
-					"fell": sim.casualty_count(enemy),
-					"withdrew": sim.withdrawn_count(enemy),
-					"fit": sim.in_fight_count(player),
-					"total": sim.soldiers.size() - _count_side(enemy),
-				}
-			)
-		)
-		_paused_banner.visible = true
-	elif sim.in_fight_count(player) == 0:
-		_paused_banner.text = tr("HUD_OUTCOME_LOST")
-		_paused_banner.visible = true
-	else:
+	if sim.outcome() == Simulation.Outcome.IN_PROGRESS:
 		_paused_banner.text = tr("HUD_PAUSED_BANNER")
 		_paused_banner.visible = paused
+		return
+	_paused_banner.text = debrief_text()
+	_paused_banner.visible = true
+
+
+## What the debrief says: how it ended, then men, rounds and time. No fanfare.
+func debrief_text() -> String:
+	var player: SimSoldier.BattleSide = SimSoldier.BattleSide.PLAYER
+	var enemy: SimSoldier.BattleSide = SimSoldier.BattleSide.ENEMY
+	var headings: Dictionary[Simulation.Outcome, String] = {
+		Simulation.Outcome.OBJECTIVE_TAKEN: "DEBRIEF_OBJECTIVE_TAKEN",
+		Simulation.Outcome.WITHDREW: "DEBRIEF_WITHDREW",
+		Simulation.Outcome.SECTION_BROKEN: "DEBRIEF_SECTION_BROKEN",
+	}
+	if not headings.has(sim.outcome()):
+		return ""
+	var lines: PackedStringArray = PackedStringArray()
+	lines.append(tr(headings[sim.outcome()]))
+	(
+		lines
+		. append(
+			(
+				tr("DEBRIEF_SECTION")
+				. format(
+					{
+						"fit": sim.in_fight_count(player),
+						"total": _count_side(player),
+						"down": sim.casualty_count(player),
+					}
+				)
+			)
+		)
+	)
+	lines.append(
+		tr("DEBRIEF_ROUNDS").format(
+			{"left": sim.rounds_left(player), "start": sim.rounds_at_start(player)}
+		)
+	)
+	(
+		lines
+		. append(
+			(
+				tr("DEBRIEF_ENEMY")
+				. format(
+					{
+						"fell": sim.casualty_count(enemy),
+						"withdrew": sim.withdrawn_count(enemy),
+						"holding": sim.in_fight_count(enemy),
+					}
+				)
+			)
+		)
+	)
+	lines.append(tr("DEBRIEF_TIME").format({"time": _clock_text()}))
+	return "\n".join(lines)
+
+
+func _count_side(side: SimSoldier.BattleSide) -> int:
+	var count: int = 0
+	for soldier: SimSoldier in sim.soldiers:
+		if soldier.side == side:
+			count += 1
+	return count
 
 
 ## One team's entry in the status strip.
@@ -357,14 +403,6 @@ func _refresh_debug_text() -> void:
 	for index: int in range(maxi(0, sim.ai_log.size() - DEBUG_LOG_LINES), sim.ai_log.size()):
 		lines.append(sim.ai_log[index])
 	_debug_text.text = "\n".join(lines)
-
-
-func _count_side(side: SimSoldier.BattleSide) -> int:
-	var count: int = 0
-	for soldier: SimSoldier in sim.soldiers:
-		if soldier.side == side:
-			count += 1
-	return count
 
 
 func _clock_text() -> String:

@@ -20,6 +20,10 @@ class Order:
 	var fire_allowed: bool
 
 
+## How a mission can end. IN_PROGRESS means it has not.
+enum Outcome { IN_PROGRESS, OBJECTIVE_TAKEN, WITHDREW, SECTION_BROKEN }
+
+
 ## One shot decided this tick, applied after everyone has fired.
 class Shot:
 	extends RefCounted
@@ -41,6 +45,11 @@ var ai_log: Array[String] = []
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _pending_orders: Array[Order] = []
+var _section_broken_below: int = 1
+var _outcome: Outcome = Outcome.IN_PROGRESS
+## Player teams whose last order was to fall back.
+var _teams_withdrawing: Dictionary[int, bool] = {}
+var _rounds_at_start: Dictionary[SimSoldier.BattleSide, int] = {}
 var _has_fallback_cell: bool = false
 var _picket_ai: PicketAi = PicketAi.new()
 
@@ -53,6 +62,7 @@ func _init(
 	_rng.seed = seed_value
 	fallback_cell = scenario.enemy_fallback
 	_has_fallback_cell = scenario.has_enemy_fallback
+	_section_broken_below = scenario.section_broken_below
 	for spec: Scenario.SoldierSpec in scenario.soldiers:
 		var soldier: SimSoldier = SimSoldier.new()
 		soldier.id = soldiers.size()
@@ -63,6 +73,7 @@ func _init(
 		soldier.weapon = weapons.get(spec.weapon_id)
 		soldier.rounds = spec.rounds
 		soldiers.append(soldier)
+		_rounds_at_start[spec.side] = _rounds_at_start.get(spec.side, 0) + spec.rounds
 
 
 ## Ask a player team to walk to a cell. Returns false when the order makes no
@@ -110,8 +121,10 @@ func order_fall_back(team_id: int) -> bool:
 	return true
 
 
-## Advance the simulation by one tick.
+## Advance the simulation by one tick. Does nothing once the mission has ended.
 func step() -> void:
+	if _outcome != Outcome.IN_PROGRESS:
+		return
 	tick += 1
 	_apply_pending_orders()
 	_fade_suppression()
@@ -123,6 +136,29 @@ func step() -> void:
 		if soldier.is_moving() and (soldier.falling_back or not is_pinned(soldier)):
 			_advance_movement(soldier)
 	_resolve_fire()
+	_outcome = _work_out_outcome()
+
+
+## How the mission ended, or IN_PROGRESS.
+##   OBJECTIVE_TAKEN   the enemy has nobody left in the fight
+##   SECTION_BROKEN    too few of the player's men are fit to go on
+##   WITHDREW          every team was told to fall back and all are back
+func outcome() -> Outcome:
+	return _outcome
+
+
+## Rounds one side carried when the scenario began.
+func rounds_at_start(side: SimSoldier.BattleSide) -> int:
+	return _rounds_at_start.get(side, 0)
+
+
+## Rounds one side still holds, counting only men still in the fight.
+func rounds_left(side: SimSoldier.BattleSide) -> int:
+	var total: int = 0
+	for soldier: SimSoldier in soldiers:
+		if soldier.side == side and soldier.in_fight():
+			total += soldier.rounds
+	return total
 
 
 ## Soldiers of one team who are still in the fight, in id order.
@@ -292,7 +328,30 @@ func _apply_pending_orders() -> void:
 	_pending_orders.clear()
 
 
+## Checked once a tick, in this order: taking the objective counts even if it
+## cost the section; a broken section cannot be said to have withdrawn.
+func _work_out_outcome() -> Outcome:
+	var player: SimSoldier.BattleSide = SimSoldier.BattleSide.PLAYER
+	var enemy: SimSoldier.BattleSide = SimSoldier.BattleSide.ENEMY
+	# A side that was never on the map cannot be beaten: a scenario with no
+	# enemy, or with no player, simply runs on.
+	if not team_ids(enemy).is_empty() and in_fight_count(enemy) == 0:
+		return Outcome.OBJECTIVE_TAKEN
+	if team_ids(player).is_empty():
+		return Outcome.IN_PROGRESS
+	if in_fight_count(player) < _section_broken_below:
+		return Outcome.SECTION_BROKEN
+	if _teams_withdrawing.is_empty():
+		return Outcome.IN_PROGRESS
+	for team_id: int in team_ids(player):
+		for soldier: SimSoldier in living(player, team_id):
+			if not _teams_withdrawing.has(team_id) or soldier.is_moving():
+				return Outcome.IN_PROGRESS
+	return Outcome.WITHDREW
+
+
 func _start_move(team: Array[SimSoldier], order: Order) -> void:
+	_teams_withdrawing.erase(order.team_id)
 	# Cells other soldiers stand on, or are walking to, are not available.
 	var taken: Dictionary[Vector2i, bool] = {}
 	for other: SimSoldier in soldiers:
@@ -314,6 +373,7 @@ func _start_move(team: Array[SimSoldier], order: Order) -> void:
 
 
 func _start_fall_back(team: Array[SimSoldier], order: Order) -> void:
+	_teams_withdrawing[order.team_id] = true
 	for soldier: SimSoldier in team:
 		# His own starting cell, or the nearest free one if somebody is on it.
 		var taken: Dictionary[Vector2i, bool] = {}

@@ -29,6 +29,8 @@ var soldiers: Array[SoldierSpec] = []
 ## has_enemy_fallback is true.
 var enemy_fallback: Vector2i = Vector2i.ZERO
 var has_enemy_fallback: bool = false
+## The mission is lost when fewer than this many of the player's men are fit.
+var section_broken_below: int = 1
 ## Problems found while loading, in plain words. Empty means the scenario is usable.
 var errors: Array[String] = []
 
@@ -60,6 +62,10 @@ static func from_json_text(text: String) -> Scenario:
 			scenario.cover.append(cell)
 	scenario._read_tracks(data.get("tracks", []))
 	scenario._read_soldiers(data.get("soldiers", []))
+	if data.has("section_broken_below"):
+		scenario.section_broken_below = _as_int(
+			data.get("section_broken_below"), "section_broken_below", scenario.errors
+		)
 	if data.has("enemy_fallback"):
 		scenario._read_enemy_fallback(data.get("enemy_fallback"))
 	return scenario

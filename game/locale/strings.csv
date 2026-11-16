@@ -23,8 +23,6 @@ BRIEFING_8,Your section is going out against one of the road-blocks.
 BRIEFING_NOTE,"The ground you are about to see is a test range, not the real place. Your section and this raid are fiction."
 BRIEFING_SOURCE,"Source: Chandar S. Sundaram, ""A Paper Tiger"", War & Society 13:1 (1995), pp. 48-49. One source so far; this text may change."
 BRIEFING_CONTINUE,Press Space to begin.
-HUD_OUTCOME_CLEARED,"The picket is gone: {fell} fell, {withdrew} withdrew. You have {fit} of {total} men fit. Press R to go again."
-HUD_OUTCOME_LOST,Your section is finished. Press R to go again.
 HUD_TEAM_GONE,Team {team}: none left
 CONTROLS_TITLE,How to play
 CONTROLS_KEYS_HEADING,Keys
@@ -48,3 +46,10 @@ DEBUG_TITLE,Debug overlay (O hides it)   seed {seed}   tick {tick}
 DEBUG_LEGEND,"Red line: the enemy can hit that man. Grey line: he is seen but covered. Green line: your man has a clear shot. Number: suppression. P pinned, B broken, F falling back."
 DEBUG_LOG_HEADING,"Enemy decisions, newest last:"
 DEBUG_LOG_EMPTY,(none yet)
+DEBRIEF_OBJECTIVE_TAKEN,The picket has gone. The ground is yours.
+DEBRIEF_WITHDREW,You broke off and brought your men back.
+DEBRIEF_SECTION_BROKEN,Your section can no longer fight.
+DEBRIEF_SECTION,"Your section: {fit} of {total} fit, {down} down."
+DEBRIEF_ROUNDS,Rounds: {left} left of {start}.
+DEBRIEF_ENEMY,"The picket: {fell} down, {withdrew} got away, {holding} still holding."
+DEBRIEF_TIME,Time: {time}.   Press R to go again.

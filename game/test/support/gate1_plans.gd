@@ -84,7 +84,7 @@ static func play(plan: Plan, seed_value: int) -> Result:
 			sim.order_move(2, Vector2i(33, 1), true)
 			sim.order_move(2, Vector2i(35, 4), true)
 		sim.step()
-		if sim.in_fight_count(enemy) == 0 or sim.in_fight_count(player) == 0:
+		if sim.outcome() != Simulation.Outcome.IN_PROGRESS:
 			break
 
 	var result: Result = Result.new()

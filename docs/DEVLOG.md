@@ -2,6 +2,46 @@
 
 What was done, what was decided, and why. Newest session first.
 
+## 2026-11-16, session 2: Gate 1 passed; Phase 2 begins
+
+### Decided by Amit
+
+- **Gate 1: "yes".** CI green on the Phase 1 build.
+
+No tallies from the playtest sheet came with it. The gate is recorded as passed on his
+word. Criterion 1 is backed by an automated test; criteria 2 to 5 have no data on
+record. This matters later: any Phase 2 choice that depends on how the fight feels is
+being made without evidence, and should say so.
+
+### Done
+
+- **Mission outcomes.** A mission now ends in one of three ways, and the simulation
+  stops when it does:
+  - *Objective taken*: the enemy has nobody left in the fight.
+  - *Section broken*: fewer than four of the ten men are fit (set per scenario).
+  - *Withdrew*: every team was told to fall back and all are back where they started.
+- **Debrief.** Replaces the old one-line banner. It says how the mission ended, then
+  counts men fit and down, rounds left of those carried, what became of the picket,
+  and the time taken. No fanfare.
+- 170 tests pass. `make check` is clean.
+
+### How to see it
+
+`make run`. Any of these ends the mission and shows the debrief:
+
+- Clear the picket by pinning and flanking.
+- Walk both teams at the picket until fewer than four men are fit.
+- Advance, then press `B` for each team and wait for them to get back.
+
+### Decisions and why
+
+| Decision | Why |
+|---|---|
+| Taking the objective counts even if it cost the section | Both things are true and the debrief shows both. The counts carry the cost. |
+| Withdrawal needs an explicit fall-back order for every team | Standing at the start line is not a decision. Ordering everyone back is. |
+| A casualty's rounds are lost with him | Simple, and it makes losses cost ammunition too. Scavenging from your own casualties can be weighed when scavenging is built. |
+| The simulation stops at the outcome | Otherwise the counts in the debrief keep changing behind it. |
+
 ## 2026-11-15, session 1 continued: the Phase 1 build is ready for Gate 1
 
 ### Reported by Amit
