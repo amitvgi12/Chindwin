@@ -59,3 +59,4 @@ WEATHER_DOWNPOUR,Downpour
 HUD_WEATHER,{weather}: sight {sight}
 CONTROLS_MARK_7,"Ground marked with short strokes is a slope. It is slower to cross, and slower still when wet."
 CONTROLS_MARK_8,"The weather changes. Heavy rain cuts how far anyone can see and shoot, and makes rifles stop."
+HUD_ENDED,ENDED

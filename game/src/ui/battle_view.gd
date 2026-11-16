@@ -292,6 +292,8 @@ func _refresh_hud() -> void:
 	_refresh_banner()
 	_refresh_debug_text()
 	var state: String = tr("HUD_PAUSED") if paused else tr("HUD_RUNNING")
+	if sim.outcome() != Simulation.Outcome.IN_PROGRESS:
+		state = tr("HUD_ENDED")
 	var status: String = tr("HUD_STATUS").format(
 		{"state": state, "time": _clock_text(), "team": selected_team, "weather": weather_text()}
 	)

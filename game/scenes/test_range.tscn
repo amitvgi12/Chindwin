@@ -40,10 +40,15 @@ mouse_filter = 2
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 2
 theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
 
 [node name="Text" type="Label" parent="Hud/Panel/Margin"]
 layout_mode = 2
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 14
+theme_override_constants/line_spacing = 1
 
 [node name="Banner" type="Label" parent="Hud"]
 anchors_preset = 5

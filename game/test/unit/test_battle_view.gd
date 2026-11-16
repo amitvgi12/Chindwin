@@ -237,6 +237,9 @@ func test_time_stops_once_the_mission_has_ended() -> void:
 	var ended_at: int = view.sim.tick
 	view.advance(0.3)
 	assert_eq(view.sim.tick, ended_at)
+	view._process(0.0)
+	assert_string_contains(view.hud_text(), "ENDED")
+	assert_false(view.hud_text().contains("RUNNING"))
 
 
 func test_b_orders_the_selected_team_to_fall_back() -> void:
